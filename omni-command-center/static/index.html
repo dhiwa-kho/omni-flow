@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Real-Time Stream & OLAP Command Center (100% DDIA Edition)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.88);
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+    .pulse-dot {
+      animation: pulseGlow 1.6s infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.65; }
+    }
+  </style>
+</head>
+<body class="p-3.5 min-h-screen flex flex-col gap-3">
+
+  <!-- HEADER + HARDWARE + DDIA SCENARIO BAR -->
+  <header class="glass-card px-4 py-2.5 flex flex-col gap-2.5">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-sky-500/20 text-sky-400 border border-sky-500/30">
+            100% DDIA Complete Edition
+          </span>
+          <span class="text-xs text-slate-400">KRaft Consensus | 3 Partitions (P0..P2) | ReplacingMergeTree FINAL</span>
+        </div>
+        <h1 class="text-lg font-bold text-white mt-0.5">
+          The Real-Time Stream &amp; OLAP Command Center
+        </h1>
+      </div>
+
+      <!-- Status Bulbs + Hardware Monitor -->
+      <div class="flex flex-wrap items-center gap-2.5">
+        <div class="bg-slate-900/90 px-3 py-1 rounded-lg border border-slate-800 text-xs font-mono">
+          <div class="text-[10px] uppercase text-slate-400 font-sans">E2E Latency Percentiles (DDIA Ch.1)</div>
+          <div class="text-slate-200 font-bold">
+            p50: <span id="lat-p50" class="text-emerald-400">0ms</span> |
+            p95: <span id="lat-p95" class="text-sky-400">0ms</span> |
+            p99: <span id="lat-p99" class="text-amber-400">0ms</span>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/90 px-3 py-1 rounded-lg border border-slate-800 text-xs font-mono">
+          <div class="text-[10px] uppercase text-slate-400 font-sans">Host CPU / RAM (Stress Monitor)</div>
+          <div class="text-slate-200 font-bold">
+            CPU: <span id="hw-cpu" class="text-sky-400">0.0%</span> |
+            RAM: <span id="hw-ram" class="text-amber-400">0.0 / 0.0 GB</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-900/90 px-3 py-1 rounded-lg border border-slate-800">
+          <span id="kafka-led" class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
+          <div>
+            <div class="text-[10px] uppercase text-slate-400">KRaft Quorum / Broker</div>
+            <div id="kafka-status-text" class="text-xs font-bold text-emerald-400">LEADER #1 (acks=all)</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-900/90 px-3 py-1 rounded-lg border border-slate-800">
+          <span id="ch-led" class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
+          <div>
+            <div class="text-[10px] uppercase text-slate-400">ClickHouse OLAP</div>
+            <div id="ch-status-text" class="text-xs font-bold text-emerald-400">ONLINE (8123)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DDIA SCENARIOS SELECTOR BAR -->
+    <div class="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-slate-400 font-semibold">Active Mode:</span>
+        <span id="active-scenario-badge" class="px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+          HAPPY_PATH
+        </span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-1.5">
+        <button
+          onclick="setScenario('HAPPY_PATH')"
+          class="px-2.5 py-1.5 rounded-lg font-bold text-xs bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 transition cursor-pointer"
+        >
+          🟢 1. Happy Path (Entity Key)
+        </button>
+
+        <button
+          onclick="triggerNetworkDrop()"
+          class="px-2.5 py-1.5 rounded-lg font-bold text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20 transition cursor-pointer"
+        >
+          ⚡ 2. Network Gap (3s Drop)
+        </button>
+
+        <button
+          onclick="setScenario('IDEMPOTENCY')"
+          class="px-2.5 py-1.5 rounded-lg font-bold text-xs bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 transition cursor-pointer"
+        >
+          🔁 3. Idempotency (Dup Retry)
+        </button>
+
+        <button
+          onclick="setScenario('STRESS_TEST')"
+          class="px-2.5 py-1.5 rounded-lg font-bold text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 transition cursor-pointer"
+        >
+          🔥 4. Stress Test (1,500+ TPS)
+        </button>
+
+        <button
+          onclick="setScenario('PARTITION_SKEW')"
+          class="px-2.5 py-1.5 rounded-lg font-bold text-xs bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/40 transition cursor-pointer"
+        >
+          ⚖️ 5A. Data Skew (Hot-Spot P0)
+        </button>
+
+        <button
+          onclick="setScenario('KEY_SALTING')"
+          class="px-2.5 py-1.5 rounded-lg font-bold text-xs bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 transition cursor-pointer"
+        >
+          🧂 5B. Key Salting (Balanced)
+        </button>
+
+        <button
+          onclick="setScenario('PAUSED')"
+          class="px-2.5 py-1.5 rounded-lg font-semibold text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition cursor-pointer"
+        >
+          ⏸️ Pause (Audit)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- TOP ROW: LIVE STREAM PULSE + DDIA PARTITIONING & KRAFT CONSENSUS          -->
+  <!-- ========================================================================= -->
+  <section class="glass-card p-3.5">
+    <div class="flex items-center justify-between mb-2">
+      <div>
+        <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">
+          Top Row: Live Stream Pulse &amp; DDIA Partition / KRaft Consensus Inspector
+        </h2>
+      </div>
+      <div class="text-xs font-mono text-slate-400">
+        Topic: <span class="text-sky-300">omni_stream_ddia (3 Partitions)</span> | Quorum: <span class="text-emerald-300">KRaft Raft Leader #1</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
+      <!-- KPI Cards -->
+      <div class="lg:col-span-3 grid grid-cols-2 gap-2">
+        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+          <div class="text-[11px] text-slate-400">Producer TPS</div>
+          <div id="producer-tps" class="text-xl font-extrabold text-sky-400">0.0</div>
+          <div class="text-[10px] text-slate-500">idempotent=True</div>
+        </div>
+
+        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+          <div class="text-[11px] text-slate-400">Consumer TPS</div>
+          <div id="consumer-tps" class="text-xl font-extrabold text-emerald-400">0.0</div>
+          <div class="text-[10px] text-slate-500">manual commit</div>
+        </div>
+
+        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+          <div class="text-[11px] text-slate-400">Total Lag</div>
+          <div id="consumer-lag" class="text-xl font-extrabold text-amber-400">0</div>
+          <div class="text-[10px] text-slate-500">across P0..P2</div>
+        </div>
+
+        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+          <div class="text-[11px] text-slate-400">Total Watermark</div>
+          <div class="text-xs font-mono font-bold text-slate-200 mt-1">
+            <span id="committed-offset">0</span>/<span id="high-offset">0</span>
+          </div>
+          <div class="text-[10px] text-slate-500">committed / high</div>
+        </div>
+      </div>
+
+      <!-- DDIA 3-Partition Distribution & Skew Monitor -->
+      <div class="lg:col-span-4 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 flex flex-col justify-between h-36">
+        <div class="flex items-center justify-between text-[11px]">
+          <span class="font-bold text-slate-200">DDIA Partition Skew &amp; ISR Status</span>
+          <span class="font-mono text-slate-400">P0 / P1 / P2</span>
+        </div>
+        <div id="partitions-container" class="space-y-2 mt-1 text-xs font-mono">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Real-Time Chart -->
+      <div class="lg:col-span-5 bg-slate-900/70 p-2 rounded-lg border border-slate-800 h-36">
+        <canvas id="pulseChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- MIDDLE SECTION: IN-TRANSIT & FAULT TOLERANCE INSPECTOR                    -->
+  <!-- ========================================================================= -->
+  <section class="glass-card p-3.5">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+      <div>
+        <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400">
+          Middle Section: In-Transit &amp; Fault Tolerance Inspector (Gap Replay &amp; Deduplication)
+        </h2>
+      </div>
+
+      <button
+        onclick="triggerDuplicate()"
+        class="px-3 py-1 rounded-lg font-semibold text-xs bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 transition cursor-pointer"
+      >
+        + Inject 10 Manual Duplicates Now
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+      <div class="lg:col-span-4 flex flex-col gap-2">
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 flex items-center justify-between">
+          <div>
+            <div class="text-[11px] text-slate-400">In-Transit Pipeline State</div>
+            <div id="network-status-badge" class="text-xs font-extrabold text-emerald-400 mt-0.5">
+              ● HEALTHY (STREAMING)
+            </div>
+          </div>
+          <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Auto-Replay: ON</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-800">
+            <div class="text-[10px] text-slate-400">Gap Replayed</div>
+            <div id="gap-recovered" class="text-base font-bold text-sky-400">0</div>
+          </div>
+          <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-800">
+            <div class="text-[10px] text-slate-400">Dups Filtered</div>
+            <div id="dup-injected" class="text-base font-bold text-indigo-400">0</div>
+          </div>
+          <div class="bg-slate-900/90 p-2 rounded-lg border border-slate-800">
+            <div class="text-[10px] text-slate-400">5s Windows / CEP</div>
+            <div class="text-sm font-bold text-emerald-400 mt-0.5">
+              <span id="win-flushed">0</span>w / <span id="cep-streaks" class="text-rose-400">0</span>🔥
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-8 bg-slate-950/90 p-2.5 rounded-lg border border-slate-800 h-28 overflow-y-auto font-mono text-xs">
+        <div id="gap-logs" class="space-y-1"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- BOTTOM ROW: 10-DEVICE IDEMPOTENCY OLAP & BATCH RECONCILIATION             -->
+  <!-- ========================================================================= -->
+  <section class="glass-card p-3.5 flex-1">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+      <div>
+        <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-400">
+          Bottom Row: 10-Device OLAP Analytics &amp; Batch Reconciliation (ClickHouse ReplacingMergeTree)
+        </h2>
+      </div>
+      <div id="reconcile-badge" class="px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+        ✅ RECONCILED (100% MATCH)
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+      <!-- Left: 10-Device Table -->
+      <div class="lg:col-span-7 bg-slate-900/80 rounded-lg border border-slate-800 overflow-hidden">
+        <div class="max-h-52 overflow-y-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] sticky top-0">
+              <tr>
+                <th class="py-1.5 px-3">Device ID</th>
+                <th class="py-1.5 px-3">Enriched Model</th>
+                <th class="py-1.5 px-2 text-right">Raw</th>
+                <th class="py-1.5 px-2 text-right">FINAL</th>
+                <th class="py-1.5 px-2 text-right">Dups</th>
+                <th class="py-1.5 px-2 text-right">CEP 🔥</th>
+                <th class="py-1.5 px-3 text-right">Cost (THB)</th>
+              </tr>
+            </thead>
+            <tbody id="olap-table-body" class="divide-y divide-slate-800/70 font-mono">
+              <tr>
+                <td colspan="6" class="py-4 text-center text-slate-500">Waiting for 10-device telemetry...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: Batch Audit / Reconciliation Check -->
+      <div class="lg:col-span-5 bg-slate-900/80 rounded-lg border border-slate-800 overflow-hidden flex flex-col justify-between">
+        <div>
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-950/60 text-slate-400 uppercase text-[10px]">
+              <tr>
+                <th class="py-2 px-3">Audit Metric</th>
+                <th class="py-2 px-2 text-right">Source Sent</th>
+                <th class="py-2 px-2 text-right">ClickHouse (FINAL)</th>
+                <th class="py-2 px-3 text-right">Diff (Gap)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/70 font-mono">
+              <tr>
+                <td class="py-2.5 px-3 font-sans text-slate-300">Unique Event Count</td>
+                <td id="audit-src-count" class="py-2.5 px-2 text-right text-sky-300 font-bold">0</td>
+                <td id="audit-ch-count" class="py-2.5 px-2 text-right text-emerald-300 font-bold">0</td>
+                <td id="audit-diff-count" class="py-2.5 px-3 text-right font-bold text-emerald-400">0</td>
+              </tr>
+              <tr>
+                <td class="py-2.5 px-3 font-sans text-slate-300">Total Energy Sum (kWh)</td>
+                <td id="audit-src-energy" class="py-2.5 px-2 text-right text-sky-300 font-bold">0.0000</td>
+                <td id="audit-ch-energy" class="py-2.5 px-2 text-right text-emerald-300 font-bold">0.0000</td>
+                <td id="audit-diff-energy" class="py-2.5 px-3 text-right font-bold text-emerald-400">0.0000</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="px-3 py-2 bg-slate-950/70 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+          <span>Raw Rows: <strong id="audit-raw-count" class="text-indigo-300 font-mono">0</strong></span>
+          <span>Duplicates Filtered: <strong id="audit-dup-removed" class="text-amber-300 font-mono">0</strong></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const ctx = document.getElementById('pulseChart').getContext('2d');
+    const maxPoints = 35;
+    const labels = Array(maxPoints).fill('');
+    const tpsData = Array(maxPoints).fill(0);
+    const lagData = Array(maxPoints).fill(0);
+
+    const pulseChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Consumer Drain (TPS)',
+            data: tpsData,
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.12)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 0
+          },
+          {
+            label: 'Consumer Lag',
+            data: lagData,
+            borderColor: '#f59e0b',
+            backgroundColor: 'rgba(245, 158, 11, 0.15)',
+            borderWidth: 2,
+            tension: 0.25,
+            fill: true,
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#94a3b8', font: { size: 10 } } }
+        },
+        scales: {
+          x: { display: false },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(148, 163, 184, 0.1)' },
+            ticks: { color: '#94a3b8', font: { size: 10 } }
+          }
+        }
+      }
+    });
+
+    async function setScenario(mode) {
+      await fetch(`/api/scenario/${mode}`, { method: 'POST' });
+    }
+
+    async function triggerNetworkDrop() {
+      await fetch('/api/simulate-drop', { method: 'POST' });
+    }
+
+    async function triggerDuplicate() {
+      await fetch('/api/simulate-dup', { method: 'POST' });
+    }
+
+    async function refreshDashboard() {
+      try {
+        const res = await fetch('/api/dashboard');
+        const data = await res.json();
+
+        document.getElementById('active-scenario-badge').textContent = data.active_scenario;
+        if (data.hardware) {
+          document.getElementById('hw-cpu').textContent = `${data.hardware.cpu_percent.toFixed(1)}%`;
+          document.getElementById('hw-ram').textContent = `${data.hardware.ram_used_gb} / ${data.hardware.ram_total_gb} GB (${data.hardware.ram_percent}%)`;
+        }
+
+        // Render 3 Partitions (P0, P1, P2) Skew & ISR Bars
+        if (data.partitions) {
+          const pContainer = document.getElementById('partitions-container');
+          pContainer.innerHTML = data.partitions.map(p => {
+            const isSkewed = p.pct > 50;
+            const barColor = isSkewed ? 'bg-orange-500' : 'bg-sky-400';
+            return `
+              <div>
+                <div class="flex justify-between text-[11px] mb-0.5">
+                  <span class="text-slate-200 font-bold">P${p.id} <span class="text-slate-500 font-normal">[Leader:${p.leader} | ISR:${p.isr}]</span></span>
+                  <span>Msgs: <strong class="text-sky-300">${p.high.toLocaleString()}</strong> (${p.pct}%) | Lag: <strong class="${p.lag > 0 ? 'text-amber-400' : 'text-emerald-400'}">${p.lag}</strong></span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                  <div class="${barColor} h-2 transition-all duration-300" style="width: ${Math.min(100, p.pct)}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        // 1. Top Row
+        const top = data.top_row;
+        document.getElementById('producer-tps').textContent = top.producer_tps.toFixed(1);
+        document.getElementById('consumer-tps').textContent = top.consumer_tps.toFixed(1);
+        document.getElementById('consumer-lag').textContent = top.consumer_lag.toLocaleString();
+        document.getElementById('committed-offset').textContent = top.last_committed_offset.toLocaleString();
+        document.getElementById('high-offset').textContent = top.high_watermark_offset.toLocaleString();
+        if (top.latency_ms) {
+          document.getElementById('lat-p50').textContent = `${top.latency_ms.p50.toFixed(0)}ms`;
+          document.getElementById('lat-p95').textContent = `${top.latency_ms.p95.toFixed(0)}ms`;
+          document.getElementById('lat-p99').textContent = `${top.latency_ms.p99.toFixed(0)}ms`;
+        }
+
+        const nowLabel = new Date().toLocaleTimeString();
+        pulseChart.data.labels.push(nowLabel);
+        pulseChart.data.labels.shift();
+        pulseChart.data.datasets[0].data.push(top.consumer_tps);
+        pulseChart.data.datasets[0].data.shift();
+        pulseChart.data.datasets[1].data.push(top.consumer_lag);
+        pulseChart.data.datasets[1].data.shift();
+        pulseChart.update();
+
+        // 2. Middle Section
+        const mid = data.middle_section;
+        const statusBadge = document.getElementById('network-status-badge');
+        if (mid.network_status === 'HEALTHY') {
+          statusBadge.textContent = '● HEALTHY (IN-SYNC STREAMING)';
+          statusBadge.className = 'text-xs font-extrabold text-emerald-400 mt-0.5';
+        } else if (mid.network_status.includes('GAP')) {
+          statusBadge.textContent = '⚠️ NETWORK GAP (BUFFERING IN KAFKA)';
+          statusBadge.className = 'text-xs font-extrabold text-amber-400 mt-0.5 animate-pulse';
+        } else {
+          statusBadge.textContent = '🔄 REPLAYING BACKLOG (OFFSET RECOVERY)';
+          statusBadge.className = 'text-xs font-extrabold text-sky-400 mt-0.5';
+        }
+
+        document.getElementById('gap-recovered').textContent = mid.gap_events_recovered.toLocaleString();
+        document.getElementById('dup-injected').textContent = mid.duplicates_injected.toLocaleString();
+        if (data.kappa_state) {
+          document.getElementById('win-flushed').textContent = data.kappa_state.windows_5s_flushed.toLocaleString();
+          document.getElementById('cep-streaks').textContent = data.kappa_state.total_cep_streaks.toLocaleString();
+        }
+
+        const logsContainer = document.getElementById('gap-logs');
+        logsContainer.innerHTML = mid.recent_gap_logs.map(l => {
+          let color = 'text-slate-300';
+          if (l.level === 'WARN') color = 'text-amber-400 font-semibold';
+          if (l.level === 'RECOVERY') color = 'text-sky-400 font-semibold';
+          if (l.level === 'SUCCESS') color = 'text-emerald-400 font-semibold';
+          return `<div class="${color}"><span class="text-slate-500">[${l.time}]</span> ${l.message}</div>`;
+        }).join('');
+
+        // 3. Bottom Row
+        const bot = data.bottom_row;
+        const tbody = document.getElementById('olap-table-body');
+        if (bot.devices_olap && bot.devices_olap.length > 0) {
+          tbody.innerHTML = bot.devices_olap.map(d => `
+            <tr class="hover:bg-slate-800/40">
+              <td class="py-1 px-3 font-bold text-sky-300">${d.device_id}</td>
+              <td class="py-1 px-3 font-sans text-slate-300">${d.zone}</td>
+              <td class="py-1 px-2 text-right text-slate-400">${d.raw_count.toLocaleString()}</td>
+              <td class="py-1 px-2 text-right text-emerald-300 font-bold">${d.final_count.toLocaleString()}</td>
+              <td class="py-1 px-2 text-right ${d.duplicates_removed > 0 ? 'text-indigo-400 font-bold' : 'text-slate-500'}">${d.duplicates_removed.toLocaleString()}</td>
+              <td class="py-1 px-2 text-right ${d.cep_streaks > 0 ? 'text-rose-400 font-bold' : 'text-slate-500'}">${d.cep_streaks}</td>
+              <td class="py-1 px-3 text-right text-emerald-300 font-bold">฿${d.total_cost_thb.toFixed(2)}</td>
+            </tr>
+          `).join('');
+        }
+
+        const rec = bot.reconciliation;
+        document.getElementById('audit-src-count').textContent = rec.source_count.toLocaleString();
+        document.getElementById('audit-ch-count').textContent = rec.clickhouse_final_count.toLocaleString();
+        document.getElementById('audit-diff-count').textContent = rec.count_diff.toLocaleString();
+        document.getElementById('audit-src-energy').textContent = rec.source_energy.toFixed(4);
+        document.getElementById('audit-ch-energy').textContent = rec.clickhouse_final_energy.toFixed(4);
+        document.getElementById('audit-diff-energy').textContent = rec.energy_diff.toFixed(4);
+        document.getElementById('audit-raw-count').textContent = rec.clickhouse_raw_count.toLocaleString();
+        document.getElementById('audit-dup-removed').textContent = rec.duplicates_removed.toLocaleString();
+
+        const recBadge = document.getElementById('reconcile-badge');
+        if (rec.is_reconciled) {
+          recBadge.textContent = '✅ RECONCILED (100% MATCH - 0 LOSS / 0 DUPLICATES)';
+          recBadge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        } else {
+          recBadge.textContent = `⏳ IN-TRANSIT SYNCING (BUFFER GAP: ${rec.count_diff} MSGS)`;
+          recBadge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        }
+      } catch (err) {
+        console.error('Dashboard fetch error:', err);
+      }
+    }
+
+    setInterval(refreshDashboard, 500);
+    refreshDashboard();
+  </script>
+</body>
+</html>

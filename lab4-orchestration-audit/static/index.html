@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 4: Medallion DAG Orchestrator & Data Quality Gate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.88);
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+    .dag-node {
+      transition: all 0.25s ease;
+    }
+    .dag-active {
+      border-color: #38bdf8 !important;
+      background: rgba(56, 189, 248, 0.22) !important;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.45);
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+<body class="p-4 min-h-screen flex flex-col gap-3.5">
+
+  <!-- HEADER -->
+  <header class="glass-card px-5 py-3 flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          Lab 4: Workflow Orchestration (Airflow / Dagster Style)
+        </span>
+        <span class="text-xs text-slate-400">Bronze ──► Data Quality Gate (Silver + Quarantine) ──► Gold Mart</span>
+      </div>
+      <h1 class="text-xl font-bold text-white mt-1">
+        Medallion DAG Orchestrator &amp; Automated Data Quality Gate
+      </h1>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="bg-slate-900 px-3.5 py-1.5 rounded-lg border border-slate-800 text-xs font-mono">
+        Next Scheduled Run: <strong id="next-run" class="text-sky-400">15s</strong>
+      </div>
+
+      <button
+        onclick="injectPoison()"
+        class="px-3.5 py-2 rounded-lg font-bold text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 transition cursor-pointer"
+      >
+        🧪 Inject 3 Poison / Corrupt Rows
+      </button>
+
+      <button
+        onclick="triggerDag()"
+        class="px-4 py-2 rounded-lg font-bold text-xs bg-sky-500 hover:bg-sky-400 text-slate-950 shadow-lg shadow-sky-500/20 transition cursor-pointer"
+      >
+        ▶️ Trigger DAG Run Now
+      </button>
+    </div>
+  </header>
+
+  <!-- VISUAL DAG GRAPH VIEW -->
+  <section class="glass-card p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400">
+        Visual DAG Execution Graph (4-Step Medallion Pipeline)
+      </h2>
+      <span id="dag-status-badge" class="text-xs font-mono px-2.5 py-0.5 rounded bg-slate-800 text-slate-300">
+        State: IDLE
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+      <div id="node-STEP_1" class="dag-node bg-slate-900/90 p-3.5 rounded-xl border border-slate-700">
+        <div class="text-[11px] font-mono text-sky-400">Task 1 (Extract)</div>
+        <div class="text-sm font-bold text-white mt-0.5">1. extract_bronze_batch</div>
+        <div class="text-xs text-slate-400 mt-1">Total Bronze Rows: <strong id="cnt-bronze" class="text-sky-300">0</strong></div>
+      </div>
+
+      <div id="node-STEP_2" class="dag-node bg-slate-900/90 p-3.5 rounded-xl border border-slate-700">
+        <div class="text-[11px] font-mono text-amber-400">Task 2 (Data Quality Gate)</div>
+        <div class="text-sm font-bold text-white mt-0.5">2. data_quality_gate</div>
+        <div class="text-xs text-slate-400 mt-1">
+          Clean: <strong id="cnt-silver" class="text-emerald-300">0</strong> |
+          Quarantined: <strong id="cnt-quarantine" class="text-rose-400">0</strong>
+        </div>
+      </div>
+
+      <div id="node-STEP_3" class="dag-node bg-slate-900/90 p-3.5 rounded-xl border border-slate-700">
+        <div class="text-[11px] font-mono text-indigo-400">Task 3 (Audit Check)</div>
+        <div class="text-sm font-bold text-white mt-0.5">3. reconcile_silver_ledger</div>
+        <div class="text-xs text-slate-400 mt-1">Bronze == Silver + Quarantine</div>
+      </div>
+
+      <div id="node-STEP_4" class="dag-node bg-slate-900/90 p-3.5 rounded-xl border border-slate-700">
+        <div class="text-[11px] font-mono text-emerald-400">Task 4 (Publish Mart)</div>
+        <div class="text-sm font-bold text-white mt-0.5">4. publish_gold_mart</div>
+        <div class="text-xs text-slate-400 mt-1">Updates Executive BI Table</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MIDDLE ROW: GOLD MART + QUARANTINED ANOMALIES -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <!-- Left: Gold Executive Mart -->
+    <div class="lg:col-span-6 glass-card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-400">
+          Gold Executive Mart (100% Verified Clean Data Only)
+        </h2>
+        <span class="text-[11px] font-mono text-slate-400">audit_olap.gold_executive_mart</span>
+      </div>
+      <table class="w-full text-left text-xs font-mono">
+        <thead class="bg-slate-950/70 text-slate-400 uppercase text-[10px]">
+          <tr>
+            <th class="py-2 px-3">Plant</th>
+            <th class="py-2 px-3 text-right">Verified Rows</th>
+            <th class="py-2 px-3 text-right">Avg Temp (°C)</th>
+            <th class="py-2 px-3 text-right">Clean Revenue (THB)</th>
+            <th class="py-2 px-3 text-right">DAG Run</th>
+          </tr>
+        </thead>
+        <tbody id="gold-tbody" class="divide-y divide-slate-800"></tbody>
+      </table>
+    </div>
+
+    <!-- Right: Quarantined Bad Rows -->
+    <div class="lg:col-span-6 glass-card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-rose-400">
+          Data Quality Quarantine Vault (Rejected Corrupt Rows)
+        </h2>
+        <span class="text-[11px] font-mono text-slate-400">audit_olap.quarantine_bad_rows</span>
+      </div>
+      <div class="max-h-44 overflow-y-auto">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-slate-950/70 text-slate-400 uppercase text-[10px] sticky top-0">
+            <tr>
+              <th class="py-2 px-2">Event ID</th>
+              <th class="py-2 px-2">Device</th>
+              <th class="py-2 px-2 text-right">Temp</th>
+              <th class="py-2 px-2 text-right">Revenue</th>
+              <th class="py-2 px-2">DQ Failure Reason</th>
+            </tr>
+          </thead>
+          <tbody id="quarantine-tbody" class="divide-y divide-slate-800"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM ROW: DAG RUN HISTORY + LIVE ORCHESTRATOR LOGS -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
+    <div class="lg:col-span-6 glass-card p-4">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-sky-400 mb-2">
+        DAG Run Execution History (audit_olap.dag_run_history)
+      </h2>
+      <table class="w-full text-left text-xs font-mono">
+        <thead class="bg-slate-950/70 text-slate-400 uppercase text-[10px]">
+          <tr>
+            <th class="py-1.5 px-2">Run #</th>
+            <th class="py-1.5 px-2">Trigger</th>
+            <th class="py-1.5 px-2 text-right">Bronze Read</th>
+            <th class="py-1.5 px-2 text-right">Silver Clean</th>
+            <th class="py-1.5 px-2 text-right">Quarantined</th>
+            <th class="py-1.5 px-2">Audit Status</th>
+          </tr>
+        </thead>
+        <tbody id="runs-tbody" class="divide-y divide-slate-800"></tbody>
+      </table>
+    </div>
+
+    <div class="lg:col-span-6 glass-card p-4 flex flex-col">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2">
+        Live Orchestrator Task Execution Logs
+      </h2>
+      <div id="logs-box" class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs h-36 overflow-y-auto space-y-1"></div>
+    </div>
+  </section>
+
+  <script>
+    async function triggerDag() {
+      await fetch('/api/trigger-dag', { method: 'POST' });
+    }
+
+    async function injectPoison() {
+      await fetch('/api/inject-poison', { method: 'POST' });
+    }
+
+    async function refreshState() {
+      try {
+        const res = await fetch('/api/state');
+        const data = await res.json();
+
+        document.getElementById('next-run').textContent = `${data.next_run_in_sec}s`;
+        document.getElementById('dag-status-badge').textContent = `State: ${data.current_step}`;
+        document.getElementById('cnt-bronze').textContent = data.counts.bronze.toLocaleString();
+        document.getElementById('cnt-silver').textContent = data.counts.silver.toLocaleString();
+        document.getElementById('cnt-quarantine').textContent = data.counts.quarantine.toLocaleString();
+
+        ['STEP_1', 'STEP_2', 'STEP_3', 'STEP_4'].forEach(st => {
+          const el = document.getElementById(`node-${st}`);
+          if (data.current_step === st) {
+            el.classList.add('dag-active');
+          } else {
+            el.classList.remove('dag-active');
+          }
+        });
+
+        document.getElementById('gold-tbody').innerHTML = data.gold_mart.map(g => `
+          <tr>
+            <td class="py-2 px-3 font-sans font-bold text-slate-200">${g.plant}</td>
+            <td class="py-2 px-3 text-right text-sky-300 font-bold">${g.verified_events}</td>
+            <td class="py-2 px-3 text-right text-slate-300">${g.avg_temp.toFixed(2)} °C</td>
+            <td class="py-2 px-3 text-right text-emerald-300 font-bold">฿${g.total_revenue.toLocaleString()}</td>
+            <td class="py-2 px-3 text-right text-slate-400">#${g.last_run_id}</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('quarantine-tbody').innerHTML = data.quarantine_list.map(q => `
+          <tr>
+            <td class="py-1.5 px-2 text-rose-300 font-bold">${q.event_id}</td>
+            <td class="py-1.5 px-2 text-slate-300">${q.device_id}</td>
+            <td class="py-1.5 px-2 text-right text-amber-300">${q.temp}°C</td>
+            <td class="py-1.5 px-2 text-right text-rose-400">฿${q.rev}</td>
+            <td class="py-1.5 px-2 text-rose-300">${q.reason}</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('runs-tbody').innerHTML = data.dag_runs.map(r => `
+          <tr>
+            <td class="py-1.5 px-2 font-bold text-sky-300">#${r.run_id}</td>
+            <td class="py-1.5 px-2 text-slate-300">${r.trigger}</td>
+            <td class="py-1.5 px-2 text-right text-slate-300">${r.bronze}</td>
+            <td class="py-1.5 px-2 text-right text-emerald-300 font-bold">${r.silver}</td>
+            <td class="py-1.5 px-2 text-right ${r.quarantine > 0 ? 'text-rose-400 font-bold' : 'text-slate-500'}">${r.quarantine}</td>
+            <td class="py-1.5 px-2 text-emerald-400 font-bold">${r.status} (${r.duration_ms}ms)</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('logs-box').innerHTML = data.logs.map(l => {
+          let c = 'text-slate-300';
+          if (l.level === 'WARN') c = 'text-rose-400 font-semibold';
+          if (l.level === 'SUCCESS') c = 'text-emerald-400 font-semibold';
+          return `<div class="${c}"><span class="text-slate-500">[${l.time}]</span> ${l.message}</div>`;
+        }).join('');
+      } catch (e) {}
+    }
+
+    setInterval(refreshState, 350);
+    refreshState();
+  </script>
+</body>
+</html>
+
