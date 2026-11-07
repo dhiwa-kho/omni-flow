@@ -9,7 +9,7 @@
 | 1 | Reliable, Scalable, and Maintainable Applications | ระบบเชื่อถือได้ วัดผลได้ และขยายได้อย่างไร | Command Center: ทดสอบการขัดข้องและโหลด |
 | 2 | Data Models and Query Languages | เลือกแบบจำลองข้อมูลและภาษา query อย่างไร | PostgreSQL, ClickHouse, event payloads และ data mart |
 | 3 | Storage and Retrieval | โครงสร้างจัดเก็บและดัชนีส่งผลต่อ workload อย่างไร | PostgreSQL, ClickHouse, Parquet |
-| 4 | Encoding and Evolution | เปลี่ยน schema โดยให้ระบบหลายรุ่นทำงานร่วมกันได้อย่างไร | Kafka payloads และ Parquet |
+| 4 | Encoding and Evolution | เปลี่ยน schema โดยให้ระบบหลายรุ่นทำงานร่วมกันได้อย่างไร | Lab 5 (Byte Inspector & Schema Evolution) และ Lab 2 (Parquet) |
 | 5 | Replication | ทำสำเนาข้อมูลและรับมือ replica ที่ตามไม่ทันอย่างไร | Kafka replication, ISR และ producer acknowledgments |
 | 6 | Partitioning | กระจายข้อมูลและโหลดโดยยังตอบโจทย์การ query อย่างไร | Kafka partitions, hot key และ key salting |
 | 7 | Transactions | รักษาความถูกต้องเมื่อมีการอ่านและเขียนพร้อมกันอย่างไร | PostgreSQL transactions และการเขียนข้อมูลปลายทาง |
@@ -28,6 +28,7 @@
 | [`lab2-minio-lakehouse`](file:///c:/Omni-Flow/lab2-minio-lakehouse) | Kafka, ClickHouse และ MinIO สำหรับจัดเก็บข้อมูลแบบ Parquet และทดลอง snapshot | [`docker-compose.yml`](file:///c:/Omni-Flow/lab2-minio-lakehouse/docker-compose.yml), [`lakehouse_producer.py`](file:///c:/Omni-Flow/lab2-minio-lakehouse/lakehouse_producer.py), [`lakehouse_sink_worker.py`](file:///c:/Omni-Flow/lab2-minio-lakehouse/lakehouse_sink_worker.py) | 3, 4, 10, 12 |
 | [`lab3-debezium-cdc`](file:///c:/Omni-Flow/lab3-debezium-cdc) | PostgreSQL WAL → Debezium → Kafka → ClickHouse | [`docker-compose.yml`](file:///c:/Omni-Flow/lab3-debezium-cdc/docker-compose.yml), [`init-postgres.sql`](file:///c:/Omni-Flow/lab3-debezium-cdc/init-postgres.sql), [`register_connector.py`](file:///c:/Omni-Flow/lab3-debezium-cdc/register_connector.py), [`cdc_sink_worker.py`](file:///c:/Omni-Flow/lab3-debezium-cdc/cdc_sink_worker.py) | 3, 5, 7, 11 |
 | [`lab4-orchestration-audit`](file:///c:/Omni-Flow/lab4-orchestration-audit) | DAG, Bronze/Silver/Gold, data quality checks, quarantine และ reconciliation | [`docker-compose.yml`](file:///c:/Omni-Flow/lab4-orchestration-audit/docker-compose.yml), [`stream_ingester.py`](file:///c:/Omni-Flow/lab4-orchestration-audit/stream_ingester.py), [`orchestrator_app.py`](file:///c:/Omni-Flow/lab4-orchestration-audit/orchestrator_app.py) | 10, 12 |
+| [`lab5-encoding-evolution`](file:///c:/Omni-Flow/lab5-encoding-evolution) | แดชบอร์ดผ่าดูไบต์จริง (`JSON 81B` vs `MsgPack 66B` vs `Thrift 59/34B` vs `Protobuf 33B` vs `Avro 32B`), จำลอง Rolling Upgrade (`v1 ↔ v2`) และกับดักการเขียนทับในฐานข้อมูล | [`encoding_app.py`](file:///c:/Omni-Flow/lab5-encoding-evolution/encoding_app.py), [`static/index.html`](file:///c:/Omni-Flow/lab5-encoding-evolution/static/index.html), [`ENCODING_TESTING_GUIDE.md`](file:///c:/Omni-Flow/lab5-encoding-evolution/ENCODING_TESTING_GUIDE.md) | 4 |
 
 การจับคู่ข้างต้นเป็นการจับคู่ตามคำอธิบายของโปรเจกต์ ไม่ได้หมายความว่า lab หนึ่งชุดครอบคลุมทฤษฎีทั้งบทโดยสมบูรณ์
 
@@ -118,10 +119,13 @@
 
 ### เชื่อมโยงกับ Omni-Flow
 
-- เปรียบเทียบ payload ที่ส่งผ่าน Kafka กับไฟล์ Parquet ที่เก็บใน MinIO ([`lab2-minio-lakehouse/lakehouse_sink_worker.py`](file:///c:/Omni-Flow/lab2-minio-lakehouse/lakehouse_sink_worker.py))
-- ทดลองเพิ่ม field ใหม่ โดยให้ consumer รุ่นเดิมและรุ่นใหม่ทำงานร่วมกัน
-- กำหนดกติกาเรื่องการเปลี่ยนชื่อ ลบ หรือเปลี่ยนชนิด field
-- Parquet เก็บ metadata เช่น schema และสถิติระดับ row group ซึ่ง query engine อาจใช้ช่วยเลือกข้อมูลที่ต้องอ่าน ทั้งนี้ขึ้นกับสถิติและความสามารถของ engine
+- **Lab 5 (`http://localhost:8085` — [`lab5-encoding-evolution/encoding_app.py`](file:///c:/Omni-Flow/lab5-encoding-evolution/encoding_app.py)):**
+  - ผ่าดูขนาดไบต์จริงและโครงสร้าง Hex ของข้อมูลตัวอย่าง `{"userName": "Martin", "favoriteNumber": 1337, "interests": ["daydreaming", "hacking"]}` เทียบกันระหว่าง Python `pickle`, `JSON (81 ไบต์)`, `MessagePack (66 ไบต์)`, `Thrift BinaryProtocol (59 ไบต์) / CompactProtocol (34 ไบต์)`, `Protocol Buffers (33 ไบต์ — ใช้ Field Tag #1, #2, #3)`, และ `Apache Avro (32 ไบต์ — ไม่มีทั้งชื่อช่องและไม่มีหมายเลข Field Tag อาศัยการเทียบ Writer's Schema กับ Reader's Schema)`
+  - ทดลองจำลอง **Rolling Upgrade (`v1 ↔ v2`)**: เปรียบเทียบกรณีเพิ่มช่องใหม่ที่มีค่าเริ่มต้น (`default`) กับกรณีเพิ่มช่องบังคับ (`required`), การเปลี่ยนชื่อช่อง (`Field Tag` vs ชื่อช่อง), และปัญหาความแม่นยำของตัวเลข 64-bit ใน JSON/JavaScript
+  - ทดลอง **กับดักข้อมูลไหลผ่านฐานข้อมูล (Dataflow Through Databases)**: เมื่อโค้ดใหม่ (`v2`) เขียนช่องใหม่ลงฐานข้อมูล แล้วโค้ดเก่า (`v1`) อ่านขึ้นมาแก้ไขแล้วเขียนกลับ หากโค้ดเก่าไม่เก็บช่องที่ไม่รู้จัก (`Unknown Fields`) ไว้ ช่องใหม่จะสูญหายไปเงียบๆ
+- **Lab 2 ([`lab2-minio-lakehouse/lakehouse_sink_worker.py`](file:///c:/Omni-Flow/lab2-minio-lakehouse/lakehouse_sink_worker.py)):**
+  - เปรียบเทียบ payload ที่ส่งผ่าน Kafka กับไฟล์ Parquet ที่เก็บใน MinIO
+  - Parquet เก็บ metadata เช่น schema และสถิติระดับ row group ซึ่ง query engine อาจใช้ช่วยเลือกข้อมูลที่ต้องอ่าน ทั้งนี้ขึ้นกับสถิติและความสามารถของ engine
 
 ---
 

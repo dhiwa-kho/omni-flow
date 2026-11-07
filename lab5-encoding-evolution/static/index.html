@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 5: DDIA บทที่ 4 — การเข้ารหัสข้อมูลและการพัฒนาระบบให้เปลี่ยนแปลงได้</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.90);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+  </style>
+</head>
+<body class="p-4 min-h-screen flex flex-col gap-4">
+
+  <!-- HEADER -->
+  <header class="glass-card px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40">
+          DDIA บทที่ 4 (Interactive Lab)
+        </span>
+        <span class="text-xs text-slate-400">
+          81 vs 66 vs 59 vs 34 vs 33 vs 32 ไบต์ | Rolling Upgrade (v1 ↔ v2) | กับดักฐานข้อมูลตอนที่ 8
+        </span>
+      </div>
+      <h1 class="text-xl font-bold text-white mt-1">
+        การเข้ารหัสข้อมูลและการพัฒนาระบบให้เปลี่ยนแปลงได้ (Encoding &amp; Schema Evolution)
+      </h1>
+    </div>
+
+    <div class="bg-slate-900 px-3.5 py-2 rounded-lg border border-slate-800 text-xs">
+      <div class="text-slate-400">ทิปจำเร็วจากบทที่ 4 (หน้า 8):</div>
+      <div class="font-mono font-bold text-emerald-400 mt-0.5">
+        JSON (81B) &gt; MsgPack (66B) &gt; Thrift (59/34B) &gt; Protobuf (33B) &gt; Avro (32B)
+      </div>
+    </div>
+  </header>
+
+  <!-- ======================================================================= -->
+  <!-- SECTION 1: BYTE-LEVEL ENCODING INSPECTOR (81 -> 66 -> 59 -> 34 -> 33 -> 32) -->
+  <!-- ======================================================================= -->
+  <section class="glass-card p-4">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+      <div>
+        <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider">
+          🔬 การทดลองที่ 1: ผ่าดูขนาดไบต์จริง (ตอนที่ 3 – ตอนที่ 7: ทำไม JSON ถึง 81 ไบต์ แต่ Avro เหลือแค่ 32 ไบต์?)
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">
+          ลองแก้ชื่อผู้ใช้หรือตัวเลขด้านขวา แล้วกดคำนวณเพื่อดูการเปลี่ยนแปลงของชุดไบต์ในแต่ละรูปแบบได้ทันที
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <input id="inp-name" value="Martin" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-white w-28 font-mono" />
+        <input id="inp-num" type="number" value="1337" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-amber-300 w-24 font-mono" />
+        <button onclick="recalculateBytes()" class="px-3 py-1.5 rounded bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold cursor-pointer">
+          🔄 เข้ารหัสเทียบขนาดไบต์
+        </button>
+        <button onclick="resetMartin()" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
+          รีเซ็ตค่าหนังสือ (Martin / 1337)
+        </button>
+      </div>
+    </div>
+
+    <div id="formats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5"></div>
+
+    <!-- Byte Segment Breakdown Box -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-800 text-xs">
+      <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800">
+        <div class="font-bold text-sky-300 mb-1.5">
+          🔍 ผ่าไบต์ Protocol Buffers (33 ไบต์) — ใช้หมายเลขประจำช่อง (Field Tag #1, #2, #3)
+        </div>
+        <div id="pb-segments" class="space-y-1 font-mono text-[11px]"></div>
+      </div>
+
+      <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800">
+        <div class="font-bold text-emerald-300 mb-1.5">
+          👑 ผ่าไบต์ Apache Avro (32 ไบต์) — ไม่มีทั้งชื่อช่องและไม่มีหมายเลข Field Tag!
+        </div>
+        <div id="avro-segments" class="space-y-1 font-mono text-[11px]"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================= -->
+  <!-- SECTION 2: ROLLING UPGRADE & SCHEMA EVOLUTION SIMULATOR                 -->
+  <!-- ======================================================================= -->
+  <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <div class="lg:col-span-7 glass-card p-4 flex flex-col justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-1">
+          🔄 การทดลองที่ 2: จำลอง Rolling Upgrade (ความเข้ากันได้ย้อนหลัง Backward vs ไปข้างหน้า Forward)
+        </h2>
+        <p class="text-xs text-slate-400 mb-3">
+          กดเลือกสถานการณ์ด้านล่างเพื่อทดสอบว่าเมื่อโค้ดเก่า (v1) และโค้ดใหม่ (v2) ทำงานพร้อมกันในระบบ แบบไหนรอด แบบไหนพัง!
+        </p>
+
+        <div class="flex flex-wrap gap-2 mb-3">
+          <button onclick="runEvolution('ADD_OPTIONAL_WITH_DEFAULT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🟢 1. เพิ่มช่องใหม่ + มีค่าเริ่มต้น (Default)
+          </button>
+          <button onclick="runEvolution('ADD_REQUIRED_NO_DEFAULT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+            🔴 2. เพิ่มช่องใหม่แบบบังคับ (Required)
+          </button>
+          <button onclick="runEvolution('RENAME_FIELD')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            🏷️ 3. เปลี่ยนชื่อช่อง (Field Tag vs ชื่อช่อง)
+          </button>
+          <button onclick="runEvolution('TWITTER_64BIT_NUMBER_TRAP')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+            🐦 4. ปัญหาตัวเลขใหญ่ Twitter (JSON / 64-bit)
+          </button>
+        </div>
+
+        <div id="evo-result" class="space-y-2.5 text-xs"></div>
+      </div>
+    </div>
+
+    <!-- ======================================================================= -->
+    <!-- SECTION 3: EPISODE 8 DATABASE READ-MODIFY-WRITE TRAP                    -->
+    <!-- ======================================================================= -->
+    <div class="lg:col-span-5 glass-card p-4 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">
+            🪤 การทดลองที่ 3: กับดักฐานข้อมูล (ตอนที่ 8 หน้า 5)
+          </h2>
+          <button onclick="runDbTrap('RESET_V2')" class="px-2.5 py-1 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
+            🔄 รีเซ็ตให้โค้ดใหม่ (v2) เขียนข้อมูลตั้งต้น
+          </button>
+        </div>
+        <p class="text-xs text-slate-400 mb-3">
+          โค้ดใหม่ (v2) เขียนช่องใหม่ <code class="text-emerald-300">4:loyaltyPoints = 500</code> ลงฐานข้อมูลไว้ ต่อมาโค้ดเก่า (v1) อ่านแถวนี้ขึ้นมาแก้ค่าอื่นแล้วเขียนกลับลงไป!
+        </p>
+
+        <div class="flex flex-wrap gap-2 mb-3">
+          <button onclick="runDbTrap('NAIVE_V1_UPDATE')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer">
+            💥 ให้โค้ดเก่า (v1) แก้แล้วเขียนทับแบบไม่ระวัง!
+          </button>
+          <button onclick="runDbTrap('SAFE_V1_UPDATE')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🛡️ ให้โค้ดเก่า (v1) เก็บช่องที่ไม่รู้จักไว้ด้วย
+          </button>
+        </div>
+
+        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs mb-2.5">
+          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+            <span>ข้อมูลที่อยู่ในฐานข้อมูลตอนนี้:</span>
+            <span id="db-writer-badge" class="text-sky-300"></span>
+          </div>
+          <pre id="db-json-box" class="text-emerald-300 whitespace-pre-wrap"></pre>
+        </div>
+
+        <div id="db-history" class="space-y-1 text-xs font-mono max-h-28 overflow-y-auto"></div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    function renderEncodingData(comp) {
+      const grid = document.getElementById('formats-grid');
+      const maxBytes = Math.max(...comp.formats.map(f => f.byte_size));
+
+      grid.innerHTML = comp.formats.map(f => {
+        const pct = Math.round((f.byte_size / maxBytes) * 100);
+        const isBest = f.id === 'avro' || f.id === 'protobuf';
+        const borderCol = isBest ? 'border-emerald-500/50' : 'border-slate-800';
+        const barCol = isBest ? 'bg-emerald-400' : (f.id === 'pickle' || f.id === 'json' ? 'bg-amber-400' : 'bg-sky-400');
+
+        return `
+          <div class="bg-slate-900/90 p-3 rounded-xl border ${borderCol} flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-white">${f.name}</span>
+                <span class="text-sm font-extrabold font-mono ${isBest ? 'text-emerald-400' : 'text-sky-300'}">${f.byte_size} ไบต์</span>
+              </div>
+              <div class="text-[10px] text-slate-400 mt-0.5">${f.episode}</div>
+              <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden my-2">
+                <div class="${barCol} h-2" style="width: ${pct}%"></div>
+              </div>
+              <div class="bg-slate-950 p-1.5 rounded border border-slate-800/80 font-mono text-[10px] text-slate-300 break-all max-h-14 overflow-y-auto">
+                ${f.hex_preview}
+              </div>
+            </div>
+            <div class="text-[11px] text-slate-300 mt-2 pt-1.5 border-t border-slate-800/80">
+              ${f.verdict}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('pb-segments').innerHTML = comp.byte_breakdown.protobuf_33_segments.map(s =>
+        `<div><span class="text-amber-300 font-bold">[${s.bytes}]</span> ──► <span class="text-slate-300 font-sans">${s.meaning}</span></div>`
+      ).join('');
+
+      document.getElementById('avro-segments').innerHTML = comp.byte_breakdown.avro_32_segments.map(s =>
+        `<div><span class="text-emerald-300 font-bold">[${s.bytes}]</span> ──► <span class="text-slate-300 font-sans">${s.meaning}</span></div>`
+      ).join('');
+    }
+
+    function renderDbTrap(db) {
+      document.getElementById('db-writer-badge').textContent = db.last_writer;
+      const box = document.getElementById('db-json-box');
+      box.textContent = JSON.stringify(db.raw_bytes_on_disk, null, 2);
+      box.className = db.status === 'DATA_LOST' ? 'text-rose-400 whitespace-pre-wrap' : 'text-emerald-300 whitespace-pre-wrap';
+
+      document.getElementById('db-history').innerHTML = db.history.map(h =>
+        `<div class="${h.includes('❌') ? 'text-rose-400 font-bold' : 'text-emerald-300'}">${h}</div>`
+      ).join('');
+    }
+
+    async function recalculateBytes() {
+      const userName = document.getElementById('inp-name').value || 'Martin';
+      const favoriteNumber = parseInt(document.getElementById('inp-num').value || '1337', 10);
+      const res = await fetch('/api/encode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userName, favoriteNumber, interest1: 'daydreaming', interest2: 'hacking' })
+      });
+      const data = await res.json();
+      renderEncodingData(data);
+    }
+
+    function resetMartin() {
+      document.getElementById('inp-name').value = 'Martin';
+      document.getElementById('inp-num').value = '1337';
+      recalculateBytes();
+    }
+
+    async function runEvolution(scenarioId) {
+      const res = await fetch(`/api/simulate-evolution/${scenarioId}`, { method: 'POST' });
+      const d = await res.json();
+      const box = document.getElementById('evo-result');
+      box.innerHTML = `
+        <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800">
+          <div class="font-bold text-white text-xs">${d.scenario}</div>
+          <div class="text-[11px] text-sky-400">${d.episode}</div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-slate-200">${d.forward_check.direction}</div>
+            <div class="text-xs font-bold mt-1 ${d.forward_check.status.includes('✅') ? 'text-emerald-400' : 'text-rose-400'}">${d.forward_check.status}</div>
+            <pre class="text-[11px] font-mono text-sky-300 bg-slate-900 p-2 rounded mt-1.5 overflow-x-auto">${JSON.stringify(d.forward_check.result_seen_by_v1, null, 2)}</pre>
+            <div class="text-[11px] text-slate-300 mt-1.5">${d.forward_check.explanation}</div>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+            <div class="font-bold text-slate-200">${d.backward_check.direction}</div>
+            <div class="text-xs font-bold mt-1 ${d.backward_check.status.includes('✅') ? 'text-emerald-400' : 'text-rose-400'}">${d.backward_check.status}</div>
+            <pre class="text-[11px] font-mono text-amber-300 bg-slate-900 p-2 rounded mt-1.5 overflow-x-auto">${JSON.stringify(d.backward_check.result_seen_by_v2, null, 2)}</pre>
+            <div class="text-[11px] text-slate-300 mt-1.5">${d.backward_check.explanation}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function runDbTrap(mode) {
+      const res = await fetch(`/api/db-trap/${mode}`, { method: 'POST' });
+      const data = await res.json();
+      renderDbTrap(data);
+    }
+
+    async function initPage() {
+      const res = await fetch('/api/init');
+      const data = await res.json();
+      renderEncodingData(data.encoding_comparison);
+      renderDbTrap(data.db_trap);
+      runEvolution('ADD_OPTIONAL_WITH_DEFAULT');
+    }
+
+    initPage();
+  </script>
+</body>
+</html>
