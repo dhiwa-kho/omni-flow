@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lab 5: DDIA บทที่ 4 — การเข้ารหัสข้อมูลและการพัฒนาระบบให้เปลี่ยนแปลงได้</title>
+  <title>DDIA Interactive Playground — ครบทั้ง 12 บท (บทที่ 1 ถึง บทที่ 12)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
@@ -21,148 +21,1230 @@
 </head>
 <body class="p-4 min-h-screen flex flex-col gap-4">
 
-  <!-- HEADER -->
-  <header class="glass-card px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <div class="flex items-center gap-2">
-        <span class="text-xs font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40">
-          DDIA บทที่ 4 (Interactive Lab)
-        </span>
-        <span class="text-xs text-slate-400">
-          81 vs 66 vs 59 vs 34 vs 33 vs 32 ไบต์ | Rolling Upgrade (v1 ↔ v2) | กับดักฐานข้อมูลตอนที่ 8
-        </span>
+  <!-- HEADER + 12 CHAPTER TABS -->
+  <header class="glass-card px-5 py-3.5 flex flex-col gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold uppercase tracking-widest px-2.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40">
+            DDIA Interactive Playground (All 12 Chapters)
+          </span>
+          <span class="text-xs text-slate-400">
+            สนามทดลองตามไฟล์สรุปภาษาไทย Designing Data-Intensive Applications ครบทั้ง 12 บท
+          </span>
+        </div>
+        <h1 class="text-lg font-bold text-white mt-1">
+          กดเลือกบทที่ต้องการทดลองเล่นได้เลย (บทที่ 1 ถึง บทที่ 12 — ไม่ต้องเปิด Docker!)
+        </h1>
       </div>
-      <h1 class="text-xl font-bold text-white mt-1">
-        การเข้ารหัสข้อมูลและการพัฒนาระบบให้เปลี่ยนแปลงได้ (Encoding &amp; Schema Evolution)
-      </h1>
     </div>
 
-    <div class="bg-slate-900 px-3.5 py-2 rounded-lg border border-slate-800 text-xs">
-      <div class="text-slate-400">ทิปจำเร็วจากบทที่ 4 (หน้า 8):</div>
-      <div class="font-mono font-bold text-emerald-400 mt-0.5">
-        JSON (81B) &gt; MsgPack (66B) &gt; Thrift (59/34B) &gt; Protobuf (33B) &gt; Avro (32B)
-      </div>
+    <!-- All 12 Chapter Switcher Buttons -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5">
+      <button id="tab-btn-ch1" onclick="switchChapter('ch1')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-emerald-500 text-slate-950 shadow cursor-pointer transition text-left truncate">
+        🏛️ บทที่ 1: เชื่อถือได้ &amp; ขยายได้
+      </button>
+      <button id="tab-btn-ch2" onclick="switchChapter('ch2')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        📕 บทที่ 2: โมเดลข้อมูล &amp; ภาษาสืบค้น
+      </button>
+      <button id="tab-btn-ch3" onclick="switchChapter('ch3')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        📙 บทที่ 3: การจัดเก็บ &amp; ค้นคืนข้อมูล
+      </button>
+      <button id="tab-btn-ch4" onclick="switchChapter('ch4')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        📘 บทที่ 4: การเข้ารหัสข้อมูล (81..32B)
+      </button>
+      <button id="tab-btn-ch5" onclick="switchChapter('ch5')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        📗 บทที่ 5: การทำสำเนา (Replication)
+      </button>
+      <button id="tab-btn-ch6" onclick="switchChapter('ch6')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        🧩 บทที่ 6: การแบ่งข้อมูล (Partitioning)
+      </button>
+      <button id="tab-btn-ch7" onclick="switchChapter('ch7')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        🏦 บทที่ 7: ธุรกรรม (Transactions)
+      </button>
+      <button id="tab-btn-ch8" onclick="switchChapter('ch8')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        🌩️ บทที่ 8: ความท้าทายระบบกระจาย
+      </button>
+      <button id="tab-btn-ch9" onclick="switchChapter('ch9')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        🌊 บทที่ 9: การประมวลผลสตรีม
+      </button>
+      <button id="tab-btn-ch10" onclick="switchChapter('ch10')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        🏭 บทที่ 10: ประมวลผลแบบแบตช์
+      </button>
+      <button id="tab-btn-ch11" onclick="switchChapter('ch11')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        🔗 บทที่ 11: สตรีมมิ่งปลายทางถึงปลายทาง
+      </button>
+      <button id="tab-btn-ch12" onclick="switchChapter('ch12')" class="px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate">
+        🚀 บทที่ 12: อนาคตของระบบข้อมูล
+      </button>
     </div>
   </header>
 
   <!-- ======================================================================= -->
-  <!-- SECTION 1: BYTE-LEVEL ENCODING INSPECTOR (81 -> 66 -> 59 -> 34 -> 33 -> 32) -->
+  <!-- CHAPTER 2 CONTAINER: DATA MODELS AND QUERY LANGUAGES                    -->
   <!-- ======================================================================= -->
-  <section class="glass-card p-4">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-      <div>
-        <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider">
-          🔬 การทดลองที่ 1: ผ่าดูขนาดไบต์จริง (ตอนที่ 3 – ตอนที่ 7: ทำไม JSON ถึง 81 ไบต์ แต่ Avro เหลือแค่ 32 ไบต์?)
-        </h2>
-        <p class="text-xs text-slate-400 mt-0.5">
-          ลองแก้ชื่อผู้ใช้หรือตัวเลขด้านขวา แล้วกดคำนวณเพื่อดูการเปลี่ยนแปลงของชุดไบต์ในแต่ละรูปแบบได้ทันที
-        </p>
-      </div>
+  <div id="view-ch2" class="hidden flex-col gap-4">
 
-      <div class="flex flex-wrap items-center gap-2 text-xs">
-        <input id="inp-name" value="Martin" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-white w-28 font-mono" />
-        <input id="inp-num" type="number" value="1337" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-amber-300 w-24 font-mono" />
-        <button onclick="recalculateBytes()" class="px-3 py-1.5 rounded bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold cursor-pointer">
-          🔄 เข้ารหัสเทียบขนาดไบต์
-        </button>
-        <button onclick="resetMartin()" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
-          รีเซ็ตค่าหนังสือ (Martin / 1337)
-        </button>
-      </div>
-    </div>
-
-    <div id="formats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5"></div>
-
-    <!-- Byte Segment Breakdown Box -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-800 text-xs">
-      <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800">
-        <div class="font-bold text-sky-300 mb-1.5">
-          🔍 ผ่าไบต์ Protocol Buffers (33 ไบต์) — ใช้หมายเลขประจำช่อง (Field Tag #1, #2, #3)
-        </div>
-        <div id="pb-segments" class="space-y-1 font-mono text-[11px]"></div>
-      </div>
-
-      <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800">
-        <div class="font-bold text-emerald-300 mb-1.5">
-          👑 ผ่าไบต์ Apache Avro (32 ไบต์) — ไม่มีทั้งชื่อช่องและไม่มีหมายเลข Field Tag!
-        </div>
-        <div id="avro-segments" class="space-y-1 font-mono text-[11px]"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================================================================= -->
-  <!-- SECTION 2: ROLLING UPGRADE & SCHEMA EVOLUTION SIMULATOR                 -->
-  <!-- ======================================================================= -->
-  <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-    <div class="lg:col-span-7 glass-card p-4 flex flex-col justify-between">
-      <div>
-        <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-1">
-          🔄 การทดลองที่ 2: จำลอง Rolling Upgrade (ความเข้ากันได้ย้อนหลัง Backward vs ไปข้างหน้า Forward)
-        </h2>
-        <p class="text-xs text-slate-400 mb-3">
-          กดเลือกสถานการณ์ด้านล่างเพื่อทดสอบว่าเมื่อโค้ดเก่า (v1) และโค้ดใหม่ (v2) ทำงานพร้อมกันในระบบ แบบไหนรอด แบบไหนพัง!
-        </p>
-
-        <div class="flex flex-wrap gap-2 mb-3">
-          <button onclick="runEvolution('ADD_OPTIONAL_WITH_DEFAULT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
-            🟢 1. เพิ่มช่องใหม่ + มีค่าเริ่มต้น (Default)
-          </button>
-          <button onclick="runEvolution('ADD_REQUIRED_NO_DEFAULT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
-            🔴 2. เพิ่มช่องใหม่แบบบังคับ (Required)
-          </button>
-          <button onclick="runEvolution('RENAME_FIELD')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
-            🏷️ 3. เปลี่ยนชื่อช่อง (Field Tag vs ชื่อช่อง)
-          </button>
-          <button onclick="runEvolution('TWITTER_64BIT_NUMBER_TRAP')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
-            🐦 4. ปัญหาตัวเลขใหญ่ Twitter (JSON / 64-bit)
-          </button>
-        </div>
-
-        <div id="evo-result" class="space-y-2.5 text-xs"></div>
-      </div>
-    </div>
-
-    <!-- ======================================================================= -->
-    <!-- SECTION 3: EPISODE 8 DATABASE READ-MODIFY-WRITE TRAP                    -->
-    <!-- ======================================================================= -->
-    <div class="lg:col-span-5 glass-card p-4 flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between mb-1">
-          <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">
-            🪤 การทดลองที่ 3: กับดักฐานข้อมูล (ตอนที่ 8 หน้า 5)
+    <!-- CH2 EXPERIMENT 1: LINKEDIN PROFILE (DOCUMENT VS RELATIONAL) -->
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">
+            🪪 การทดลองที่ 1 (ตอนที่ 2 หน้า 1–3): โปรไฟล์ LinkedIn — โมเดลเอกสาร (JSON) ปะทะ โมเดลเชิงสัมพันธ์ (ตาราง SQL)
           </h2>
-          <button onclick="runDbTrap('RESET_V2')" class="px-2.5 py-1 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
-            🔄 รีเซ็ตให้โค้ดใหม่ (v2) เขียนข้อมูลตั้งต้น
-          </button>
-        </div>
-        <p class="text-xs text-slate-400 mb-3">
-          โค้ดใหม่ (v2) เขียนช่องใหม่ <code class="text-emerald-300">4:loyaltyPoints = 500</code> ลงฐานข้อมูลไว้ ต่อมาโค้ดเก่า (v1) อ่านแถวนี้ขึ้นมาแก้ค่าอื่นแล้วเขียนกลับลงไป!
-        </p>
-
-        <div class="flex flex-wrap gap-2 mb-3">
-          <button onclick="runDbTrap('NAIVE_V1_UPDATE')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer">
-            💥 ให้โค้ดเก่า (v1) แก้แล้วเขียนทับแบบไม่ระวัง!
-          </button>
-          <button onclick="runDbTrap('SAFE_V1_UPDATE')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
-            🛡️ ให้โค้ดเก่า (v1) เก็บช่องที่ไม่รู้จักไว้ด้วย
-          </button>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดปุ่มทั้ง 3 สถานการณ์ด้านขวา เพื่อดูว่าเมื่อไหร่แบบเอกสาร (JSON ต้นไม้) ดีกว่า และเมื่อไหร่แบบตาราง (Relational) ชนะขาด!
+          </p>
         </div>
 
-        <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs mb-2.5">
-          <div class="flex justify-between text-[11px] text-slate-400 mb-1">
-            <span>ข้อมูลที่อยู่ในฐานข้อมูลตอนนี้:</span>
-            <span id="db-writer-badge" class="text-sky-300"></span>
-          </div>
-          <pre id="db-json-box" class="text-emerald-300 whitespace-pre-wrap"></pre>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCh2Linkedin('COMPARE_STRUCTURE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            🌳 1. เทียบโครงสร้างต้นไม้ JSON vs แยก 4 ตาราง
+          </button>
+          <button onclick="loadCh2Linkedin('UPDATE_BANGKOK')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+            🏙️ 2. ทดสอบแก้ชื่อ "กรุงเทพมหานคร" (Normalization)
+          </button>
+          <button onclick="loadCh2Linkedin('SCHEMA_ON_READ_VS_WRITE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            ✂️ 3. แยกชื่อ-นามสกุล (Schema-on-Read vs Write)
+          </button>
         </div>
-
-        <div id="db-history" class="space-y-1 text-xs font-mono max-h-28 overflow-y-auto"></div>
       </div>
-    </div>
-  </section>
+
+      <div id="ch2-linkedin-box"></div>
+    </section>
+
+    <!-- CH2 EXPERIMENT 2 & 3 SIDE BY SIDE -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Left: Sharks Imperative vs MapReduce vs Declarative SQL -->
+      <div class="lg:col-span-5 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider mb-1">
+            🦈 การทดลองที่ 2 (ตอนที่ 3 หน้า 3–4): นับจำนวน "ฉลาม" รายเดือน
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            เปรียบเทียบการสั่งงานคอมพิวเตอร์ 3 แนวคิด: สั่งทีละขั้น (Imperative) vs MapReduce vs บอกแค่ผลลัพธ์ที่ต้องการ (Declarative SQL)
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh2Sharks('IMPERATIVE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+              1. สั่งทีละขั้น (Imperative Loop)
+            </button>
+            <button onclick="loadCh2Sharks('MAPREDUCE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+              2. MapReduce (map + reduce)
+            </button>
+            <button onclick="loadCh2Sharks('DECLARATIVE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+              3. แบบประกาศ (Declarative SQL)
+            </button>
+          </div>
+
+          <div id="ch2-sharks-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- Right: Lucy & Alain Property Graph (Cypher 4 lines vs SQL 29 lines) -->
+      <div class="lg:col-span-7 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-1">
+            🕸️ การทดลองที่ 3 (ตอนที่ 4 หน้า 4–6): โมเดลกราฟ "ลูซี่ (Lucy) กับ อแลง (Alain)"
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            ทำไมข้อมูลที่เชื่อมโยงกันซับซ้อนหลายชั้น (เมือง ──► รัฐ ──► ประเทศ ──► ทวีป) ใช้ภาษา Cypher แค่ 4 บรรทัด แต่ถ้าใช้ SQL ต้องเขียนถึง 29 บรรทัด?
+          </p>
+
+          <!-- Visual Graph Diagram of Lucy & Alain -->
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono mb-3 space-y-1.5">
+            <div class="text-[11px] font-sans font-bold text-slate-400 mb-1">
+              แผนภาพจุด (Vertex) และเส้นเชื่อม (Edge) ในหนังสือหน้า 5:
+            </div>
+            <div class="text-emerald-300">
+              👩 <strong>[ลูซี่ (Lucy)]</strong> ──(เกิดที่)──► [รัฐไอดาโฮ] ──(อยู่ใน)──► <strong>[สหรัฐอเมริกา (USA)]</strong> ──(อยู่ใน)──► [อเมริกาเหนือ]
+            </div>
+            <div class="text-sky-300">
+              👩 <strong>[ลูซี่ (Lucy)]</strong> ──(อาศัยอยู่ที่)──► [ลอนดอน] ──(อยู่ใน)──► [อังกฤษ] ──(อยู่ใน)──► <strong>[ทวีปยุโรป (Europe)]</strong>
+            </div>
+            <div class="text-slate-400">
+              💑 <strong>[ลูซี่ (Lucy)]</strong> ◄──(แต่งงานกับ)──► 👨 <strong>[อแลง (Alain)]</strong> ──(เกิดที่)──► [ฝรั่งเศส] ──(อยู่ใน)──► [ทวีปยุโรป]
+            </div>
+          </div>
+
+          <div id="ch2-graph-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 3 CONTAINER: STORAGE AND RETRIEVAL                              -->
+  <!-- ======================================================================= -->
+  <div id="view-ch3" class="hidden flex-col gap-4">
+
+    <!-- CH3 EXPERIMENT 1: APPEND-ONLY LOG + BITCASK HASH INDEX + COMPACTION -->
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider">
+            📼 การทดลองที่ 1 (ตอนที่ 2–3 หน้า 1–2): ฐานข้อมูลที่ง่ายที่สุดในโลก &amp; ดัชนีแบบแฮช (Bitcask Hash Index + Compaction)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            ลองกดเขียนยอดวิววิดีโอต่อท้ายไฟล์ (<code class="text-emerald-300">Append-only Log</code>), กดลบด้วยป้ายหลุมศพ (<code class="text-rose-300">Tombstone</code>), แล้วกดบีบอัดรวมไฟล์ (<code class="text-sky-300">Compaction</code>)!
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCh3Bitcask('WRITE_VIDEO_42')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer">
+            ✍️ 1. เขียนต่อท้าย: อัปเดตยอดวิว video_42 (+150)
+          </button>
+          <button onclick="loadCh3Bitcask('DELETE_USER_TEMP')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+            🪦 2. ลบคีย์ user_temp (เขียนป้ายหลุมศพ Tombstone)
+          </button>
+          <button onclick="loadCh3Bitcask('COMPACT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 cursor-pointer">
+            🗜️ 3. รัน Compaction บีบอัดไฟล์ (ทิ้งค่าเก่า + ป้ายหลุมศพ)
+          </button>
+          <button onclick="loadCh3Bitcask('RESET')" class="px-2.5 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
+            🔄 รีเซ็ต
+          </button>
+        </div>
+      </div>
+
+      <div id="ch3-bitcask-box"></div>
+    </section>
+
+    <!-- CH3 EXPERIMENT 2 & 3 SIDE BY SIDE -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Left: LSM-Tree vs B-Tree + Bloom Filter -->
+      <div class="lg:col-span-6 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">
+            🌲 การทดลองที่ 2 (ตอนที่ 4–6 หน้า 2–5): ศึกชิงเจ้าระบบจัดเก็บ — LSM-Tree ปะทะ B-Tree
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            กดเลือกสถานการณ์เพื่อเปรียบเทียบกลไกเบื้องหลังระหว่าง <strong>LSM-Tree</strong> (Memtable + SSTable + Bloom Filter) กับ <strong>B-Tree</strong> (หน้าขนาดคงที่ 4 KB + WAL)
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh3Engine('WRITE_COMPARE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+              ✍️ 1. ตอนเขียนข้อมูลใหม่ (Write Amplification)
+            </button>
+            <button onclick="loadCh3Engine('READ_EXISTING')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+              📖 2. ตอนอ่านข้อมูล &amp; ล็อกช่วงคีย์ (4 ชั้น = 256 TB)
+            </button>
+            <button onclick="loadCh3Engine('READ_MISSING_BLOOM')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+              🛡️ 3. ค้นหาคีย์ที่ไม่มีอยู่จริง (พลังของ Bloom Filter!)
+            </button>
+          </div>
+
+          <div id="ch3-engine-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- Right: OLTP vs OLAP, Star Schema, Column Store, Bitmap + RLE -->
+      <div class="lg:col-span-6 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider mb-1">
+            📊 การทดลองที่ 3 (ตอนที่ 8–9 หน้า 6–8): งานวิเคราะห์ (OLAP) &amp; การบีบอัดแบบคอลัมน์ (Bitmap + RLE)
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            ทำไมคลังข้อมูล (Data Warehouse / Star Schema) ถึงแยกเก็บข้อมูลทีละคอลัมน์ แล้วบีบอัดด้วย <strong>Bitmap Encoding + Run-Length Encoding (RLE)</strong>?
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh3Olap('ROW_VS_COLUMN')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+              🗄️ 1. เก็บทีละแถว (OLTP) vs เก็บทีละคอลัมน์ (OLAP)
+            </button>
+            <button onclick="loadCh3Olap('BITMAP_RLE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+              🔥 2. ผ่าการบีบอัด Bitmap (0/1) + Run-Length Encoding
+            </button>
+          </div>
+
+          <div id="ch3-olap-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 4 CONTAINER: ENCODING AND EVOLUTION                             -->
+  <!-- ======================================================================= -->
+  <div id="view-ch4" class="hidden flex-col gap-4">
+
+    <!-- SECTION 1: BYTE-LEVEL ENCODING INSPECTOR -->
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider">
+            🔬 การทดลองที่ 1: ผ่าดูขนาดไบต์จริง (ตอนที่ 3 – ตอนที่ 7: ทำไม JSON ถึง 81 ไบต์ แต่ Avro เหลือแค่ 32 ไบต์?)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            ข้อมูลตัวอย่าง 3 ชนิด: ข้อความ (<code class="text-sky-300">"Martin"</code>), ตัวเลข (<code class="text-amber-300">1337</code>), และอาเรย์ (<code class="text-emerald-300">["daydreaming", "hacking"]</code>)
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <input id="inp-name" value="Martin" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-white w-28 font-mono" />
+          <input id="inp-num" type="number" value="1337" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-amber-300 w-24 font-mono" />
+          <button onclick="recalculateBytes()" class="px-3 py-1.5 rounded bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold cursor-pointer">
+            🔄 เข้ารหัสเทียบขนาดไบต์
+          </button>
+          <button onclick="resetMartin()" class="px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
+            รีเซ็ตค่าหนังสือ (Martin / 1337)
+          </button>
+        </div>
+      </div>
+
+      <div id="formats-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3 pt-3 border-t border-slate-800 text-xs">
+        <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800">
+          <div class="font-bold text-sky-300 mb-1.5">
+            🔍 ผ่าไบต์ Protocol Buffers (33 ไบต์) — ใช้หมายเลขประจำช่อง (Field Tag #1, #2, #3)
+          </div>
+          <div id="pb-segments" class="space-y-1 font-mono text-[11px]"></div>
+        </div>
+
+        <div class="bg-slate-900/90 p-3 rounded-lg border border-slate-800">
+          <div class="font-bold text-emerald-300 mb-1.5">
+            👑 ผ่าไบต์ Apache Avro (32 ไบต์) — ไม่มีทั้งชื่อช่องและไม่มีหมายเลข Field Tag!
+          </div>
+          <div id="avro-segments" class="space-y-1 font-mono text-[11px]"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 & 3 OF CHAPTER 4 -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div class="lg:col-span-7 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-1">
+            🔄 การทดลองที่ 2: จำลอง Rolling Upgrade (ความเข้ากันได้ย้อนหลัง Backward vs ไปข้างหน้า Forward)
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            กดเลือกสถานการณ์ด้านล่างเพื่อทดสอบว่าเมื่อโค้ดเก่า (v1) และโค้ดใหม่ (v2) ทำงานพร้อมกันในระบบ แบบไหนรอด แบบไหนพัง!
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="runEvolution('ADD_OPTIONAL_WITH_DEFAULT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+              🟢 1. เพิ่มช่องใหม่ + มีค่าเริ่มต้น (Default)
+            </button>
+            <button onclick="runEvolution('ADD_REQUIRED_NO_DEFAULT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+              🔴 2. เพิ่มช่องใหม่แบบบังคับ (Required)
+            </button>
+            <button onclick="runEvolution('RENAME_FIELD')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+              🏷️ 3. เปลี่ยนชื่อช่อง (Field Tag vs ชื่อช่อง)
+            </button>
+            <button onclick="runEvolution('TWITTER_64BIT_NUMBER_TRAP')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+              🐦 4. ปัญหาตัวเลขใหญ่ Twitter (JSON / 64-bit)
+            </button>
+          </div>
+
+          <div id="evo-result" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+
+      <div class="lg:col-span-5 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">
+              🪤 การทดลองที่ 3: กับดักฐานข้อมูล (ตอนที่ 8 หน้า 5)
+            </h2>
+            <button onclick="runDbTrap('RESET_V2')" class="px-2.5 py-1 rounded text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
+              🔄 รีเซ็ตให้โค้ดใหม่ (v2) เขียนข้อมูลตั้งต้น
+            </button>
+          </div>
+          <p class="text-xs text-slate-400 mb-3">
+            โค้ดใหม่ (v2) เขียนช่องใหม่ <code class="text-emerald-300">4:loyaltyPoints = 500</code> ลงฐานข้อมูลไว้ ต่อมาโค้ดเก่า (v1) อ่านแถวนี้ขึ้นมาแก้ค่าอื่นแล้วเขียนกลับลงไป!
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="runDbTrap('NAIVE_V1_UPDATE')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer">
+              💥 ให้โค้ดเก่า (v1) แก้แล้วเขียนทับแบบไม่ระวัง!
+            </button>
+            <button onclick="runDbTrap('SAFE_V1_UPDATE')" class="flex-1 py-2 px-3 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+              🛡️ ให้โค้ดเก่า (v1) เก็บช่องที่ไม่รู้จักไว้ด้วย
+            </button>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs mb-2.5">
+            <div class="flex justify-between text-[11px] text-slate-400 mb-1">
+              <span>ข้อมูลที่อยู่ในฐานข้อมูลตอนนี้:</span>
+              <span id="db-writer-badge" class="text-sky-300"></span>
+            </div>
+            <pre id="db-json-box" class="text-emerald-300 whitespace-pre-wrap"></pre>
+          </div>
+
+          <div id="db-history" class="space-y-1 text-xs font-mono max-h-28 overflow-y-auto"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 5 CONTAINER: REPLICATION                                        -->
+  <!-- ======================================================================= -->
+  <div id="view-ch5" class="hidden flex-col gap-4">
+
+    <!-- CH5 EXPERIMENT 1: SINGLE-LEADER, SEMI-SYNC, GITHUB FAILOVER & SPLIT BRAIN -->
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">
+            👑 การทดลองที่ 1 (ตอนที่ 2–4 หน้า 1–3): แบบมีผู้นำคนเดียว (Single-Leader) &amp; กับดักตอนเปลี่ยนผู้นำ (GitHub Failover / Split Brain)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดเลือกสถานการณ์ด้านขวาเพื่อดูการทำงานแบบกึ่งรอ (<code class="text-sky-300">Semi-Synchronous</code>), เหตุการณ์จริงที่ <code class="text-rose-300">GitHub</code> ข้อมูลรั่วตอนเปลี่ยนผู้นำ, และภาวะสมองแยก (<code class="text-amber-300">Split Brain</code>)!
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCh5Leader('SEMI_SYNC')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🛡️ 1. แบบกึ่งรอ (Semi-Synchronous) &amp; 4 วิธีส่ง Log
+          </button>
+          <button onclick="loadCh5Leader('GITHUB_FAILOVER')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer">
+            💥 2. จำลองเหตุการณ์จริง GitHub (Failover ข้อมูลรั่ว!)
+          </button>
+          <button onclick="loadCh5Leader('SPLIT_BRAIN')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+            🧠⚡ 3. ภาวะสมองแยก (Split Brain — มีผู้นำ 2 คนพร้อมกัน!)
+          </button>
+        </div>
+      </div>
+
+      <div id="ch5-leader-box"></div>
+    </section>
+
+    <!-- CH5 EXPERIMENT 2 & 3 SIDE BY SIDE -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Left: 3 Replication Lag Anomalies (Read-after-write, Monotonic reads, คุณพูนส์ & คุณเค้ก) -->
+      <div class="lg:col-span-6 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-1">
+            👻 การทดลองที่ 2 (ตอนที่ 5 หน้า 3–4): 3 อาการหลอนเมื่อสำเนาตามไม่ทัน (Replication Lag)
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            เมื่อใช้แบบไม่รอ (Asynchronous) แล้วสำเนาล้าหลัง ผู้ใช้จะเจอเรื่องแปลกๆ 3 แบบ กดดูแต่ละอาการและวิธีแก้ได้เลย!
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh5Lag('READ_OWN_WRITES')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+              1. เขียนแล้วอ่านไม่เจอ (Read-After-Write)
+            </button>
+            <button onclick="loadCh5Lag('MONOTONIC_READS')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+              2. ข้อมูลย้อนเวลา (Monotonic Reads)
+            </button>
+            <button onclick="loadCh5Lag('CONSISTENT_PREFIX')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+              🔮 3. เห็นคำตอบก่อนคำถาม ("คุณพูนส์ &amp; คุณเค้ก")
+            </button>
+          </div>
+
+          <div id="ch5-lag-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- Right: Leaderless Dynamo Quorum (w + r > n), Sloppy Quorum, Shopping Cart (นม + ไข่) -->
+      <div class="lg:col-span-6 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider mb-1">
+            🛒 การทดลองที่ 3 (ตอนที่ 7–8 หน้า 5–7): แบบไม่มีผู้นำ (Dynamo Quorum) &amp; ตะกร้าสินค้า "นม + ไข่"
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            ทดสอบกฎเสียงข้างมาก (<code class="text-emerald-300">w + r &gt; n</code>), การฝากข้อมูลไว้โซฟาเพื่อนบ้าน (<code class="text-amber-300">Sloppy Quorum</code>), และการรวมตะกร้าสินค้าด้วยหมายเลขเวอร์ชัน (<code class="text-sky-300">Sibling</code>)!
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh5Dynamo('QUORUM_VALID')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+              ⚖️ 1. Quorum (n=3, w=2, r=2) + Read Repair
+            </button>
+            <button onclick="loadCh5Dynamo('SLOPPY_QUORUM')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+              🛋️ 2. Sloppy Quorum (นอนโซฟาบ้านเพื่อนบ้าน)
+            </button>
+            <button onclick="loadCh5Dynamo('CART_LWW_LOST')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+              ❌ 3. ตะกร้าสินค้าแบบ LWW (นมหาย!)
+            </button>
+            <button onclick="loadCh5Dynamo('CART_SIBLING_MERGE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500 hover:bg-sky-400 text-slate-950 cursor-pointer">
+              🏆 4. ตะกร้าสินค้าแบบ Sibling (รวมได้ทั้งนมและไข่!)
+            </button>
+          </div>
+
+          <div id="ch5-dynamo-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 7 CONTAINER: TRANSACTIONS                                       -->
+  <!-- ======================================================================= -->
+  <div id="view-ch7" class="hidden flex-col gap-4">
+
+    <!-- CH7 EXPERIMENT 1: 4 RACE CONDITIONS (DIRTY READ, READ SKEW 900 BAHT, LOST UPDATE, WRITE SKEW DOCTORS) -->
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">
+            💥 การทดลองที่ 1 (ตอนที่ 3 หน้า 2): ผ่า 4 ปัญหาข้อมูลตีกันเมื่อทำงานพร้อมกัน (Race Conditions)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดเลือกเหตุการณ์จากในหนังสือด้านขวา: โอนเงิน 2 บัญชีแล้วเห็นเงินเหลือ <code class="text-amber-300">900 บาท</code>, พนักงานบวกเลขทับกัน, และ <code class="text-rose-300">หมอเวร 2 คนกดขอลาหยุดพร้อมกัน</code>!
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCh7Race('DIRTY_READ')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer">
+            1. Dirty Read (อ่านตัวเลขปลอมก่อน Abort)
+          </button>
+          <button onclick="loadCh7Race('READ_SKEW')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+            💸 2. Read Skew (โอนเงิน 100 บาท เห็นยอดรวม 900!)
+          </button>
+          <button onclick="loadCh7Race('LOST_UPDATE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            🗑️ 3. Lost Update (10+1 สองรอบได้ 11!)
+          </button>
+          <button onclick="loadCh7Race('WRITE_SKEW')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer">
+            🏥 4. Write Skew (หมอเวร 2 คนลาหยุดพร้อมกัน เหลือ 0 คน!)
+          </button>
+        </div>
+      </div>
+
+      <div id="ch7-race-box"></div>
+    </section>
+
+    <!-- CH7 EXPERIMENT 2 & 3 SIDE BY SIDE -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Left: 3 Isolation Levels + MVCC -->
+      <div class="lg:col-span-6 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-1">
+            🛡️ การทดลองที่ 2 (ตอนที่ 4 หน้า 2–3): ระดับการแยกธุรกรรม (Isolation Levels) &amp; กลไก MVCC
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            กดสลับระดับการป้องกันเพื่อดูว่าแต่ละระดับกันปัญหาไหนได้บ้าง และทำไม <strong>Snapshot Isolation (MVCC)</strong> ถึงยังกันเคสหมอเวรลาหยุดพร้อมกันไม่ได้!
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh7Isolation('READ_COMMITTED')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+              1. Read Committed
+            </button>
+            <button onclick="loadCh7Isolation('SNAPSHOT_ISOLATION')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+              📸 2. Snapshot Isolation (MVCC)
+            </button>
+            <button onclick="loadCh7Isolation('SERIALIZABLE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+              🏆 3. Serializable (สูงสุด)
+            </button>
+          </div>
+
+          <div id="ch7-isolation-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- Right: 3 Ways to Achieve Serializable (Actual Serial, 2PL, SSI) -->
+      <div class="lg:col-span-6 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">
+            ⚙️ การทดลองที่ 3 (ตอนที่ 5 หน้า 3–4): 3 วิธีไปให้ถึงระดับสูงสุด Serializable
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            เปรียบเทียบการรันทีละคำสั่งบนเธรดเดียว (Redis/VoltDB), การล็อกสองขั้นตอน (<code class="text-rose-300">2PL — เสี่ยงติดล็อกตายหมู่ Deadlock</code>), และการตรวจจับแบบใจดี (<code class="text-emerald-300">SSI</code>)!
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh7Serializable('ACTUAL_SERIAL')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+              ⚡ 1. รันทีละคำสั่งใน RAM (Single-thread)
+            </button>
+            <button onclick="loadCh7Serializable('TWO_PHASE_LOCKING')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+              🔒 2. ล็อกสองขั้นตอน (2PL &amp; Deadlock)
+            </button>
+            <button onclick="loadCh7Serializable('SSI')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer">
+              🏆 3. ตรวจสอบย้อนหลังแบบใจดี (SSI)
+            </button>
+          </div>
+
+          <div id="ch7-serializable-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 8 CONTAINER: THE TROUBLE WITH DISTRIBUTED SYSTEMS               -->
+  <!-- ======================================================================= -->
+  <div id="view-ch8" class="hidden flex-col gap-4">
+
+    <!-- CH8 EXPERIMENT 1: ASYNC NETWORK TIMEOUT, RETRY DOUBLE CHARGE VS IDEMPOTENCE -->
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider">
+            🌐 การทดลองที่ 1 (ตอนที่ 2 หน้า 1–2): ความผิดพลาดของเครือข่าย, การตั้งเวลารอ (Timeout) &amp; การตัดเงินซ้ำสองรอบ vs Idempotence
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดเลือกสถานการณ์ด้านขวาเพื่อดูว่าทำไมการส่งซ้ำหลังหมดเวลา (<code class="text-rose-300">Timeout + Retry</code>) ถึงทำให้ลูกค้าโดนตัดเงินสองรอบ และวิธีแก้ด้วยคำสั่งแบบ <code class="text-emerald-300">Idempotence</code>!
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCh8Network('THREE_MYSTERIES')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            ❓ 1. 3 ปริศนาเมื่ออีกฝั่งไม่ตอบกลับ
+          </button>
+          <button onclick="loadCh8Network('RETRY_DOUBLE_CHARGE')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500 hover:bg-rose-400 text-slate-950 cursor-pointer">
+            💸 2. ส่งซ้ำ (Retry) แล้วลูกค้าโดนตัดเงิน 2 รอบ!
+          </button>
+          <button onclick="loadCh8Network('RETRY_IDEMPOTENT')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🛡️ 3. แก้ด้วย Idempotence ("ตั้งยอดเป็น 110 บาท")
+          </button>
+        </div>
+      </div>
+
+      <div id="ch8-network-box"></div>
+    </section>
+
+    <!-- CH8 EXPERIMENT 2 & 3 SIDE BY SIDE -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Left: Unreliable Clocks (LWW Clock Skew vs Google Spanner TrueTime) -->
+      <div class="lg:col-span-6 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider mb-1">
+            ⏰ การทดลองที่ 2 (ตอนที่ 3 หน้า 2): นาฬิกาที่ไม่เคยตรงกัน (Clock Skew) vs Google Spanner
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            จำลองเหตุการณ์ในหนังสือ: เมื่อนาฬิกา <strong>เครื่อง B เดินเร็วกว่าความจริงไป 2 วินาที (12:00:02 vs 12:00:01)</strong> ทำไมข้อมูลใหม่กว่าของเครื่อง A ถึงถูกลบทิ้งเมื่อใช้ <strong>Last Write Wins (LWW)</strong>?
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh8Clock('LWW_CLOCK_SKEW')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+              💥 1. นาฬิกาเครื่อง B เดินเร็ว 2 วินาที (LWW ทำข้อมูลใหม่หาย!)
+            </button>
+            <button onclick="loadCh8Clock('SPANNER_TRUETIME')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+              🛰️ 2. Google Spanner (GPS + Atomic Clock + Wait Out)
+            </button>
+          </div>
+
+          <div id="ch8-clock-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+
+      <!-- Right: Truth Defined by the Majority (Quorum, Split Brain, Consensus Raft/Paxos/Zab) -->
+      <div class="lg:col-span-6 glass-card p-4 flex flex-col justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-1">
+            🗳️ การทดลองที่ 3 (ตอนที่ 4–5 หน้า 3–4): เมื่อคอมพิวเตอร์ต้องโหวตหาความจริง (Quorum &amp; Consensus)
+          </h2>
+          <p class="text-xs text-slate-400 mb-3">
+            เมื่อเครือข่ายขาดกลางคันแบ่งระบบเป็น <strong>ฝั่งซ้าย 2 เครื่อง</strong> กับ <strong>ฝั่งขวา 3 เครื่อง</strong> อัลกอริทึม <strong>Paxos / Raft / Zab</strong> ป้องกันการมีผู้ใหญ่บ้าน 2 คนพร้อมกันอย่างไร?
+          </p>
+
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button onclick="loadCh8Consensus('SPLIT_BRAIN_NO_QUORUM')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+              🧠⚡ 1. ไม่มีโหวตเสียงข้างมาก (ผู้ใหญ่บ้าน 2 คนพร้อมกัน!)
+            </button>
+            <button onclick="loadCh8Consensus('RAFT_PAXOS_MAJORITY')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer">
+              🏆 2. ใช้ Consensus (Raft / Paxos — เสียงข้างมาก 3 ใน 5)
+            </button>
+          </div>
+
+          <div id="ch8-consensus-box" class="space-y-2.5 text-xs"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 1 CONTAINER: RELIABLE, SCALABLE, AND MAINTAINABLE APPLICATIONS  -->
+  <!-- ======================================================================= -->
+  <div id="view-ch1" class="flex flex-col gap-4">
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">
+            🏛️ บทที่ 1: ระบบที่เชื่อถือได้ ขยายได้ และดูแลง่าย (Twitter ไทม์ไลน์ / เปอร์เซ็นไทล์ p99.9 Amazon / Chaos Monkey)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดปุ่มด้านขวาเพื่อดูการแก้ปัญหาไทม์ไลน์คนดังของ Twitter, เหตุผลที่ Amazon แคร์เปอร์เซ็นไทล์ที่ 99.9, และ 3 เสาหลักของระบบข้อมูล!
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCardChapter(1, 'TWITTER_TIMELINE', 'ch1-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            🐦 1. ไทม์ไลน์ Twitter (คนทั่วไป vs คนดังผู้ติดตาม 30 ล้านคน)
+          </button>
+          <button onclick="loadCardChapter(1, 'PERCENTILES_AMAZON', 'ch1-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+            📈 2. เปอร์เซ็นไทล์ p50 / p95 / p99.9 (ลูกค้า VIP ของ Amazon)
+          </button>
+          <button onclick="loadCardChapter(1, 'RELIABILITY_MAINTAINABILITY', 'ch1-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🐵 3. Fault vs Failure (Chaos Monkey) &amp; ความง่ายในการดูแล
+          </button>
+        </div>
+      </div>
+      <div id="ch1-box"></div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 6 CONTAINER: PARTITIONING                                       -->
+  <!-- ======================================================================= -->
+  <div id="view-ch6" class="hidden flex-col gap-4">
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider">
+            🧩 บทที่ 6: การแบ่งข้อมูลเป็นส่วน ๆ (Key Range vs Hash / ดัชนีรถมือสองสีแดง / Rebalancing &amp; ZooKeeper)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดปุ่มด้านขวาเพื่อดูวิธีแบ่งข้อมูลหลีกเลี่ยงจุดร้อน (Hot Spot), การค้นหารถสีแดงด้วย Local vs Global Index, และทำไมห้ามใช้ <code class="text-rose-300">hash % N</code>!
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCardChapter(6, 'KEY_RANGE_VS_HASH', 'ch6-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            ⚖️ 1. ช่วงคีย์ vs ค่าแฮช vs Cassandra &amp; แก้คีย์คนดังร้อนจัด
+          </button>
+          <button onclick="loadCardChapter(6, 'SECONDARY_INDEX_CARS', 'ch6-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+            🚗 2. เว็บขายรถมือสอง: Local Index vs Global Index
+          </button>
+          <button onclick="loadCardChapter(6, 'REBALANCING_ROUTING', 'ch6-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            🧭 3. การย้ายข้อมูล (ทำไมห้ามใช้ hash % N!) &amp; ZooKeeper
+          </button>
+        </div>
+      </div>
+      <div id="ch6-box"></div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 9 CONTAINER: STREAM PROCESSING                                  -->
+  <!-- ======================================================================= -->
+  <div id="view-ch9" class="hidden flex-col gap-4">
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-sky-400 uppercase tracking-wider">
+            🌊 บทที่ 9: การประมวลผลสตรีม (Kafka Event Log / CDC &amp; Event Sourcing / ซื้อของ 12:59 น. เน็ตหลุด / Stream Joins)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดปุ่มด้านขวาเพื่อดูความต่างของคิวข้อความกับ Event Log, ปัญหาเวลา Event Time vs Processing Time (Watermarks), และการเชื่อมสตรีมค้นหารองเท้า!
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCardChapter(9, 'QUEUE_VS_LOG_CDC', 'ch9-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            📜 1. RabbitMQ vs Kafka Log &amp; CDC / Event Sourcing
+          </button>
+          <button onclick="loadCardChapter(9, 'EVENT_TIME_WATERMARK', 'ch9-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 cursor-pointer">
+            ⏱️ 2. ซื้อของ 12:59 น. แต่มาถึง 13:15 น. (Event Time &amp; Watermarks)
+          </button>
+          <button onclick="loadCardChapter(9, 'STREAM_JOINS', 'ch9-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            👟 3. การเชื่อมสตรีม 3 แบบ (ค้นหารองเท้า ──► คลิกซื้อใน 1 นาที)
+          </button>
+        </div>
+      </div>
+      <div id="ch9-box"></div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 10 CONTAINER: BATCH PROCESSING                                  -->
+  <!-- ======================================================================= -->
+  <div id="view-ch10" class="hidden flex-col gap-4">
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-amber-400 uppercase tracking-wider">
+            🏭 บทที่ 10: การประมวลผลแบบแบตช์ (ปรัชญา Unix Pipes ──► MapReduce &amp; HDFS ──► Apache Spark DAG)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดปุ่มด้านขวาเพื่อดูวิวัฒนาการจากท่อคำสั่ง Unix สู่ MapReduce และทำไมยุคใหม่ถึงเปลี่ยนมาประมวลผลในหน่วยความจำด้วย Dataflow Engines (Spark)!
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCardChapter(10, 'UNIX_TO_MAPREDUCE', 'ch10-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            🔧 1. ปรัชญา Unix Pipes (cat | grep | sort) สู่ MapReduce &amp; HDFS
+          </button>
+          <button onclick="loadCardChapter(10, 'MAPREDUCE_VS_SPARK', 'ch10-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🚀 2. จุดอ่อนการเขียนดิสก์ของ MapReduce สู่ยุค Spark DAG ใน RAM
+          </button>
+        </div>
+      </div>
+      <div id="ch10-box"></div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 11 CONTAINER: END-TO-END STREAM PROCESSING                      -->
+  <!-- ======================================================================= -->
+  <div id="view-ch11" class="hidden flex-col gap-4">
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-wider">
+            🔗 บทที่ 11: การประมวลผลสตรีมมิ่งแบบปลายทางถึงปลายทาง (Checkpoints / ไม่ตัดเงินเบิ้ล / Lambda สู่ Unified)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดปุ่มด้านขวาเพื่อดูว่าทำไมเครื่องแฮงก์กลางคันแล้วข้อมูลไม่หาย ยอดเงินไม่ถูกบวกเบิ้ล (End-to-End Exactly-Once) และจุดจบของ Lambda Architecture!
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCardChapter(11, 'CHECKPOINTS_EXACTLY_ONCE', 'ch11-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🎯 1. Checkpoints &amp; การบันทึกไม่ให้ตัดเงินเบิ้ล (Idempotent + 2PC)
+          </button>
+          <button onclick="loadCardChapter(11, 'LAMBDA_VS_UNIFIED', 'ch11-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 cursor-pointer">
+            🔄 2. จาก Lambda Architecture (ดูแลโค้ด 2 ชุด) สู่ Unified Stream
+          </button>
+        </div>
+      </div>
+      <div id="ch11-box"></div>
+    </section>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- CHAPTER 12 CONTAINER: THE FUTURE OF DATA SYSTEMS                        -->
+  <!-- ======================================================================= -->
+  <div id="view-ch12" class="hidden flex-col gap-4">
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div>
+          <h2 class="text-sm font-bold text-rose-400 uppercase tracking-wider">
+            🚀 บทที่ 12: อนาคตของระบบข้อมูล (อวสานฐานข้อมูลครอบจักรวาล / Unbundling เลโก้ / สิทธิในการถูกลืม &amp; จริยธรรม)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            กดปุ่มด้านขวาเพื่อดูการร้อยเรียง PostgreSQL + Elasticsearch + Redis + Parquet ด้วย CDC และการแยกชิ้นส่วนฐานข้อมูลมาต่อเหมือนเลโก้!
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="loadCardChapter(12, 'UNBUNDLING_INTEGRATION', 'ch12-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 cursor-pointer">
+            🧱 1. บูรณาการระบบข้อมูล (Derived Data) &amp; แยกส่วนเหมือนเลโก้ (Unbundling)
+          </button>
+          <button onclick="loadCardChapter(12, 'UNIFIED_AND_ETHICS', 'ch12-box')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 cursor-pointer">
+            ⚖️ 2. Unified Processing &amp; สิทธิในการถูกลืม (Privacy &amp; Ethics)
+          </button>
+        </div>
+      </div>
+      <div id="ch12-box"></div>
+    </section>
+  </div>
 
   <script>
+    const ALL_CH = ['ch1','ch2','ch3','ch4','ch5','ch6','ch7','ch8','ch9','ch10','ch11','ch12'];
+
+    function switchChapter(ch) {
+      const activeStyle = 'px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-emerald-500 text-slate-950 shadow cursor-pointer transition text-left truncate';
+      const inactiveStyle = 'px-2.5 py-1.5 rounded-lg font-bold text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer transition text-left truncate';
+
+      ALL_CH.forEach(k => {
+        const v = document.getElementById(`view-${k}`);
+        const b = document.getElementById(`tab-btn-${k}`);
+        if (!v || !b) return;
+        if (k === ch) {
+          v.className = 'flex flex-col gap-4';
+          b.className = activeStyle;
+        } else {
+          v.className = 'hidden flex-col gap-4';
+          b.className = inactiveStyle;
+        }
+      });
+    }
+
+    async function loadCardChapter(chNum, topic, targetId) {
+      const res = await fetch(`/api/ch${chNum}/${topic}`, { method: 'POST' });
+      const d = await res.json();
+      const cols = d.cards.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2';
+      document.getElementById(targetId).innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span class="font-bold text-white">📌 ${d.title}</span>
+          <span class="px-2.5 py-0.5 rounded bg-slate-950 text-amber-300 font-bold">${d.badge}</span>
+        </div>
+        <div class="grid grid-cols-1 ${cols} gap-3 text-xs">
+          ${d.cards.map(c => `
+            <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between">
+              <div>
+                <div class="font-bold text-emerald-300 text-sm">${c.name}</div>
+                <div class="text-[11px] text-sky-300 mt-0.5 mb-2 font-bold">${c.tag}</div>
+                <div class="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">${c.detail}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    async function loadCh8Network(mode) {
+      const res = await fetch(`/api/ch8/network/${mode}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch8-network-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 mb-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span class="font-bold text-white">📌 ${d.title}</span>
+          <span class="px-2.5 py-0.5 rounded bg-slate-950 text-amber-300 font-bold">${d.badge}</span>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 text-xs">
+          <div class="lg:col-span-7 bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 font-mono text-[11px] text-slate-200">
+            ${d.scenarios.map(s => `<div class="p-1.5 rounded bg-slate-900 border border-slate-800">${s}</div>`).join('')}
+          </div>
+          <div class="lg:col-span-5 bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col justify-between gap-2">
+            <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 font-bold text-amber-300">${d.outcome}</div>
+            <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/40 font-bold text-emerald-300">${d.takeaway}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadCh8Clock(mode) {
+      const res = await fetch(`/api/ch8/clock/${mode}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch8-clock-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+          <div class="font-bold text-white">${d.title}</div>
+          <div class="text-[11px] font-bold text-amber-300 mt-1">${d.badge}</div>
+        </div>
+        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1 text-[11px]">
+          <div class="font-bold text-sky-300 mb-1">${d.left_box_title}</div>
+          ${d.left_box_lines.map(l => `<div class="text-slate-200">${l}</div>`).join('')}
+        </div>
+        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1 text-[11px]">
+          <div class="font-bold text-amber-300 mb-1">${d.right_box_title}</div>
+          ${d.right_box_lines.map(l => `<div class="text-slate-200">${l}</div>`).join('')}
+        </div>
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 text-[11px] font-bold text-emerald-300">
+          ${d.verdict}
+        </div>
+      `;
+    }
+
+    async function loadCh8Consensus(mode) {
+      const res = await fetch(`/api/ch8/consensus/${mode}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch8-consensus-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+          <div class="font-bold text-white">${d.title}</div>
+          <div class="text-[11px] font-bold text-emerald-300 mt-1">${d.badge}</div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-rose-500/40">
+            <div class="font-bold text-rose-300 mb-1">${d.left_side.title}</div>
+            <div class="text-[11px] text-slate-200">${d.left_side.state}</div>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-emerald-500/40">
+            <div class="font-bold text-emerald-300 mb-1">${d.right_side.title}</div>
+            <div class="text-[11px] text-slate-200">${d.right_side.state}</div>
+          </div>
+        </div>
+        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1 text-[11px] text-slate-200">
+          ${d.rules.map(r => `<div>• ${r}</div>`).join('')}
+        </div>
+      `;
+    }
+
+    async function loadCh7Race(caseId) {
+      const res = await fetch(`/api/ch7/race/${caseId}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch7-race-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 mb-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span class="font-bold text-white">📌 ${d.title}</span>
+          <span class="px-2.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">${d.badge}</span>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 text-xs">
+          <div class="lg:col-span-7 bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5">
+            <div class="font-bold text-sky-300">${d.initial_state}</div>
+            <div class="space-y-1 font-mono text-[11px] text-slate-200 pt-1 border-t border-slate-800">
+              ${d.steps.map(s => `<div class="p-1.5 rounded bg-slate-900 border border-slate-800">${s}</div>`).join('')}
+            </div>
+          </div>
+          <div class="lg:col-span-5 bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col justify-between gap-2">
+            <div class="p-2.5 rounded-lg bg-rose-950/30 border border-rose-500/40 text-rose-300 font-bold">
+              ${d.final_outcome}
+            </div>
+            <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/40 text-emerald-300 font-bold">
+              ${d.fix_level}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadCh7Isolation(level) {
+      const res = await fetch(`/api/ch7/isolation/${level}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch7-isolation-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+          <div class="font-bold text-white">${d.level_name}</div>
+          <div class="text-[11px] text-sky-300 mt-1">${d.mechanism}</div>
+        </div>
+        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 space-y-1.5">
+          ${d.matrix.map(m => {
+            const ok = m.status.includes('✅') || m.status.includes('🏆');
+            return `
+              <div class="flex items-center justify-between gap-2 p-1.5 rounded bg-slate-900 border border-slate-800 text-[11px]">
+                <span class="text-slate-200">${m.problem}</span>
+                <span class="font-bold ${ok ? 'text-emerald-400' : 'text-rose-400'}">${m.status}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    async function loadCh7Serializable(method) {
+      const res = await fetch(`/api/ch7/serializable/${method}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch7-serializable-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+          <div class="font-bold text-white">${d.name}</div>
+          <div class="text-[11px] font-bold text-amber-300 mt-1">${d.badge}</div>
+        </div>
+        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-[11px] text-slate-200">
+          ${d.how_it_works.map(h => `<div>${h}</div>`).join('')}
+        </div>
+      `;
+    }
+
+    async function loadCh5Leader(mode) {
+      const res = await fetch(`/api/ch5/leader/${mode}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch5-leader-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 mb-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span class="font-bold text-white">📌 ${d.title}</span>
+          <span class="px-2.5 py-0.5 rounded bg-slate-950 text-amber-300 font-bold">${d.status_badge}</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs mb-2.5">
+          ${d.nodes.map(n => {
+            const borderMap = {
+              emerald: 'border-emerald-500/40 bg-emerald-950/20',
+              sky: 'border-sky-500/40 bg-sky-950/20',
+              amber: 'border-amber-500/40 bg-amber-950/20',
+              rose: 'border-rose-500/50 bg-rose-950/30',
+            };
+            return `
+              <div class="p-3 rounded-xl border ${borderMap[n.color] || 'border-slate-800 bg-slate-950'}">
+                <div class="font-bold text-white">${n.role}</div>
+                <div class="text-[11px] text-sky-300 mt-0.5 mb-1.5">${n.mode}</div>
+                <div class="text-[11px] text-slate-200 bg-slate-950/80 p-2 rounded border border-slate-800">${n.state}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-1 text-[11px] text-slate-300">
+          ${d.log_methods.map(m => `<div>${m}</div>`).join('')}
+        </div>
+      `;
+    }
+
+    async function loadCh5Lag(anomaly) {
+      const res = await fetch(`/api/ch5/lag/${anomaly}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch5-lag-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+          <div class="font-bold text-white">${d.title}</div>
+          <div class="text-[11px] text-slate-300 mt-1">${d.story}</div>
+        </div>
+        <pre class="bg-rose-950/30 p-2.5 rounded-lg border border-rose-500/40 font-mono text-[11px] text-rose-300 whitespace-pre-wrap">${d.what_user_sees_bad}</pre>
+        <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-1 text-[11px] text-slate-200">
+          <div class="font-bold text-amber-300 mb-1">ลำดับเหตุการณ์ที่ทำให้เกิดอาการหลอน:</div>
+          ${d.timeline.map(t => `<div>${t}</div>`).join('')}
+        </div>
+        <div class="bg-emerald-950/25 p-2.5 rounded-lg border border-emerald-500/40 space-y-1 text-[11px] text-emerald-200">
+          <div class="font-bold text-emerald-300 mb-1">${d.solution_name}</div>
+          ${d.solution_steps.map(s => `<div>${s}</div>`).join('')}
+        </div>
+      `;
+    }
+
+    async function loadCh5Dynamo(mode) {
+      const res = await fetch(`/api/ch5/dynamo/${mode}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch5-dynamo-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+          <div class="font-bold text-white">${d.title}</div>
+          <div class="text-[11px] font-bold text-emerald-300 mt-1">${d.formula_verdict}</div>
+        </div>
+        <div class="space-y-1.5">
+          ${d.replicas.map(r => `
+            <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex flex-col gap-1">
+              <div class="font-bold text-sky-300">${r.name}</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-[11px] font-mono">
+                <div class="bg-slate-900 p-1.5 rounded text-amber-200">ฝั่งเขียน: ${r.write_state}</div>
+                <div class="bg-slate-900 p-1.5 rounded text-emerald-300">ฝั่งอ่าน/ผลลัพธ์: ${r.read_state}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-[11px] text-slate-200">
+          💡 ${d.explanation}
+        </div>
+      `;
+    }
+
+    async function loadCh3Bitcask(action) {
+      const res = await fetch(`/api/ch3/bitcask/${action}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch3-bitcask-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 mb-2.5 text-xs font-bold text-amber-300">
+          ${d.last_action_msg}
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 text-xs">
+          <!-- Append-only Log on Disk -->
+          <div class="lg:col-span-7 bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-sky-300">💿 ไฟล์บนดิสก์: ${d.segment_name}</span>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono">ขนาดรวม ${d.total_bytes_on_disk} ไบต์ (${d.total_lines} บรรทัด)</span>
+            </div>
+            <div class="space-y-1 font-mono text-[11px] max-h-48 overflow-y-auto">
+              ${d.log_entries.map(e => {
+                const isLive = e.status.includes('LIVE');
+                const isTomb = e.status.includes('TOMBSTONE');
+                const rowCls = isLive ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' : (isTomb ? 'bg-rose-950/40 border-rose-500/40 text-rose-300' : 'bg-slate-900/60 border-slate-800 text-slate-500 line-through');
+                return `
+                  <div class="p-1.5 rounded border ${rowCls} flex items-center justify-between gap-2">
+                    <span>[Offset <strong>${e.offset}</strong>] key=<strong>"${e.key}"</strong> ──► ${e.value}</span>
+                    <span class="text-[10px] font-sans px-1.5 py-0.5 rounded bg-slate-950/80">${e.status}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- In-Memory Hash Index (Bitcask) -->
+          <div class="lg:col-span-5 bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-bold text-emerald-300">⚡ ตาราง Hash Index ในหน่วยความจำ (RAM)</span>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">ค้นหา O(1) ทันที!</span>
+              </div>
+              <pre class="bg-slate-900 p-2.5 rounded-lg font-mono text-[11px] text-amber-300 overflow-x-auto">${JSON.stringify(d.hash_index_in_ram, null, 2)}</pre>
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-800 space-y-1 text-[11px]">
+              <div class="text-rose-300">🐢 <strong>ถ้าไม่มีดัชนี:</strong> ${d.lookup_comparison.without_index}</div>
+              <div class="text-emerald-300">🚀 <strong>มี Hash Index:</strong> ${d.lookup_comparison.with_hash_index}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadCh3Engine(mode) {
+      const res = await fetch(`/api/ch3/engine/${mode}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch3-engine-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 font-bold text-white">
+          📌 ${d.title}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div class="bg-slate-950 p-3 rounded-xl border border-emerald-500/30 flex flex-col justify-between">
+            <div>
+              <div class="font-bold text-emerald-300">${d.lsm.name}</div>
+              <div class="text-[11px] text-sky-300 mt-0.5 mb-2">${d.lsm.badge}</div>
+              <div class="space-y-1 text-[11px] text-slate-200">
+                ${d.lsm.steps.map(s => `<div>• ${s}</div>`).join('')}
+              </div>
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-800 text-[11px] text-emerald-300 font-bold">${d.lsm.verdict}</div>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-amber-500/30 flex flex-col justify-between">
+            <div>
+              <div class="font-bold text-amber-300">${d.btree.name}</div>
+              <div class="text-[11px] text-sky-300 mt-0.5 mb-2">${d.btree.badge}</div>
+              <div class="space-y-1 text-[11px] text-slate-200">
+                ${d.btree.steps.map(s => `<div>• ${s}</div>`).join('')}
+              </div>
+            </div>
+            <div class="mt-2 pt-2 border-t border-slate-800 text-[11px] text-amber-300 font-bold">${d.btree.verdict}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadCh3Olap(mode) {
+      const res = await fetch(`/api/ch3/olap/${mode}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch3-olap-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+          <div class="font-bold text-white">${d.title}</div>
+          <div class="font-mono text-[11px] text-emerald-300 mt-1">${d.query}</div>
+        </div>
+        <div class="space-y-2.5">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="font-bold text-amber-300">${d.left_title}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">${d.left_badge}</span>
+            </div>
+            <pre class="bg-slate-900 p-2.5 rounded-lg font-mono text-[11px] text-slate-200 whitespace-pre-wrap overflow-x-auto">${d.left_detail}</pre>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-emerald-500/40">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="font-bold text-emerald-300">${d.right_title}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">${d.right_badge}</span>
+            </div>
+            <pre class="bg-slate-900 p-2.5 rounded-lg font-mono text-[11px] text-emerald-200 whitespace-pre-wrap overflow-x-auto">${d.right_detail}</pre>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadCh2Linkedin(action) {
+      const res = await fetch(`/api/ch2/linkedin/${action}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch2-linkedin-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 mb-2.5 text-xs font-bold text-white">
+          📌 ${d.title}
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 text-xs">
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-sky-300">${d.left_title}</span>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">${d.left_badge}</span>
+              </div>
+              <pre class="bg-slate-900 p-2.5 rounded-lg font-mono text-[11px] text-emerald-300 overflow-x-auto max-h-48">${typeof d.left_data === 'string' ? d.left_data : JSON.stringify(d.left_data, null, 2)}</pre>
+            </div>
+            <div class="text-[11px] text-slate-300 mt-2 pt-2 border-t border-slate-800">${d.left_note}</div>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-bold text-amber-300">${d.right_title}</span>
+                <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">${d.right_badge}</span>
+              </div>
+              <pre class="bg-slate-900 p-2.5 rounded-lg font-mono text-[11px] text-amber-200 overflow-x-auto max-h-48">${typeof d.right_data === 'string' ? d.right_data : JSON.stringify(d.right_data, null, 2)}</pre>
+            </div>
+            <div class="text-[11px] text-slate-300 mt-2 pt-2 border-t border-slate-800">${d.right_note}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadCh2Sharks(style) {
+      const res = await fetch(`/api/ch2/sharks/${style}`, { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch2-sharks-box').innerHTML = `
+        <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 font-bold text-white">
+          ${d.style_name}
+        </div>
+        <pre class="bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-[11px] text-sky-300 overflow-x-auto">${d.code}</pre>
+        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-[11px] text-slate-200">
+          ${d.pros_cons}
+        </div>
+        <div class="bg-emerald-950/30 p-2.5 rounded-lg border border-emerald-500/30 font-mono text-[11px] text-emerald-300">
+          <strong>ผลลัพธ์การนับฉลามรายเดือน:</strong> ${JSON.stringify(d.result)}
+        </div>
+      `;
+    }
+
+    async function loadCh2Graph() {
+      const res = await fetch('/api/ch2/graph/CYPHER_VS_SQL', { method: 'POST' });
+      const d = await res.json();
+      document.getElementById('ch2-graph-box').innerHTML = `
+        <div class="bg-emerald-500/15 p-2.5 rounded-lg border border-emerald-500/40">
+          <div class="font-bold text-emerald-300">${d.matched_person}</div>
+          <div class="space-y-0.5 mt-1 text-[11px] text-slate-200">
+            ${d.traversal_steps.map(s => `<div>• ${s}</div>`).join('')}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          <div class="bg-slate-950 p-2.5 rounded-lg border border-emerald-500/40">
+            <div class="font-bold text-emerald-400 mb-1">✅ ภาษา Cypher ของกราฟ (สั้นแค่ 4 บรรทัด!)</div>
+            <pre class="font-mono text-[10px] text-emerald-200 overflow-x-auto">${d.cypher_code}</pre>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-lg border border-rose-500/40">
+            <div class="font-bold text-rose-400 mb-1">🥵 ถ้าใช้ SQL (WITH RECURSIVE ยาว 29 บรรทัด!)</div>
+            <pre class="font-mono text-[10px] text-amber-200 overflow-x-auto max-h-32">${d.sql_recursive_code}</pre>
+          </div>
+        </div>
+      `;
+    }
+
     function renderEncodingData(comp) {
       const grid = document.getElementById('formats-grid');
       const maxBytes = Math.max(...comp.formats.map(f => f.byte_size));
@@ -271,6 +1353,27 @@
       renderEncodingData(data.encoding_comparison);
       renderDbTrap(data.db_trap);
       runEvolution('ADD_OPTIONAL_WITH_DEFAULT');
+      loadCh2Linkedin('COMPARE_STRUCTURE');
+      loadCh2Sharks('DECLARATIVE');
+      loadCh2Graph();
+      loadCh3Bitcask('INIT');
+      loadCh3Engine('WRITE_COMPARE');
+      loadCh3Olap('ROW_VS_COLUMN');
+      loadCh5Leader('SEMI_SYNC');
+      loadCh5Lag('CONSISTENT_PREFIX');
+      loadCh5Dynamo('CART_SIBLING_MERGE');
+      loadCh7Race('WRITE_SKEW');
+      loadCh7Isolation('SNAPSHOT_ISOLATION');
+      loadCh7Serializable('SSI');
+      loadCh8Network('RETRY_IDEMPOTENT');
+      loadCh8Clock('LWW_CLOCK_SKEW');
+      loadCh8Consensus('RAFT_PAXOS_MAJORITY');
+      loadCardChapter(1, 'TWITTER_TIMELINE', 'ch1-box');
+      loadCardChapter(6, 'KEY_RANGE_VS_HASH', 'ch6-box');
+      loadCardChapter(9, 'EVENT_TIME_WATERMARK', 'ch9-box');
+      loadCardChapter(10, 'UNIX_TO_MAPREDUCE', 'ch10-box');
+      loadCardChapter(11, 'CHECKPOINTS_EXACTLY_ONCE', 'ch11-box');
+      loadCardChapter(12, 'UNBUNDLING_INTEGRATION', 'ch12-box');
     }
 
     initPage();

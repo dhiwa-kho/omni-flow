@@ -20,3 +20,8 @@ Thumbs.db
 # Logs & temporary data
 *.log
 tmp/
+
+# Media & Large Files
+Audio/
+*.m4a
+
