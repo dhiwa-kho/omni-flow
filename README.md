@@ -4,6 +4,8 @@
 
 👉 **เริ่มต้นอ่านคู่มือทฤษฎีและแนวทางเตรียมสัมภาษณ์ทั้ง 12 บทได้ที่:**
 * 📕 **[docs/DDIA_MASTER_GUIDE.md](docs/DDIA_MASTER_GUIDE.md)** — คู่มือเชื่อมโยง DDIA ทั้ง 12 บทเข้ากับ Omni-Flow Labs
+* 🎯 **[docs/INTERVIEW_SCRIPT_THAI_ENG.md](docs/INTERVIEW_SCRIPT_THAI_ENG.md)** — สคริปต์ตอบสัมภาษณ์งานภาษาไทย-อังกฤษ (Bilingual Job Interview Script)
+
 
 ---
 
